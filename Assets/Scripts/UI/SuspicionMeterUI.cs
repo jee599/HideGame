@@ -45,7 +45,13 @@ public class SuspicionMeterUI : MonoBehaviour
 
         if (valueLabel != null)
         {
-            valueLabel.text = $"Suspicion {Mathf.RoundToInt(suspicion)}";
+            var status = suspicion switch
+            {
+                < 40f => "CALM",
+                < 70f => "WATCHED",
+                _ => "EXPOSED"
+            };
+            valueLabel.text = $"{status}  {Mathf.RoundToInt(suspicion)}";
         }
     }
 }

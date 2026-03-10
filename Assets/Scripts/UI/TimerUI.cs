@@ -136,13 +136,15 @@ public class TimerUI : MonoBehaviour
             return;
         }
 
-        hunterLabel.text = hunter.currentState switch
+        var seesPlayer = hunter.Player != null && hunter.SeesPlayer();
+        var stateLabel = hunter.currentState switch
         {
-            HunterState.Investigate => "Hunter  Investigating",
-            HunterState.Chase => "Hunter  Chasing",
-            HunterState.Lockdown => $"Hunter  Lockdown {Mathf.CeilToInt(hunter.LockdownRemainingTime):00}s",
-            _ => "Hunter  Patrolling"
+            HunterState.Investigate => "Investigating",
+            HunterState.Chase => "Chasing",
+            HunterState.Lockdown => $"Lockdown {Mathf.CeilToInt(hunter.LockdownRemainingTime):00}s",
+            _ => "Patrolling"
         };
+        hunterLabel.text = seesPlayer ? $"Hunter  {stateLabel}  •  Sighted" : $"Hunter  {stateLabel}";
     }
 
     private void RefreshEventLabel()

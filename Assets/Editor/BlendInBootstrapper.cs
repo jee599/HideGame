@@ -518,6 +518,7 @@ public static partial class BlendInBootstrapper
 
         var hunter = root.AddComponent<HunterAI>();
         hunter.config = assets.HunterConfig;
+        var variation = root.AddComponent<CharacterVariation>();
         var detection = root.GetComponent<DetectionSystem>();
         if (detection == null)
         {
@@ -529,7 +530,7 @@ public static partial class BlendInBootstrapper
         viewOrigin.localPosition = new Vector3(0f, 1.6f, 0f);
         detection.viewOrigin = viewOrigin;
 
-        CreateCharacterVisual(
+        var visual = CreateCharacterVisual(
             root.transform,
             assets.ArtSet != null ? assets.ArtSet.hunterVisualPrefab : null,
             "Body",
@@ -540,24 +541,102 @@ public static partial class BlendInBootstrapper
             assets.CharacterAnimatorController,
             assets.CharacterAvatar,
             false,
-            out _);
+            out var tintRenderers);
+        variation.bodyVariants = assets.ArtSet != null && assets.ArtSet.hunterVisualPrefab != null
+            ? System.Array.Empty<GameObject>()
+            : new[] { visual };
+        variation.tintRenderers = tintRenderers;
 
-        var marker = CreatePrimitiveVisual(
-            "HunterMarker",
-            PrimitiveType.Sphere,
-            root.transform,
-            assets.HunterMaterial,
-            new Vector3(0f, 2.35f, 0f),
-            new Vector3(0.28f, 0.28f, 0.28f));
-        var markerRenderer = marker.GetComponent<Renderer>();
-        if (markerRenderer != null && assets.HunterMaterial != null)
-        {
-            markerRenderer.sharedMaterial = assets.HunterMaterial;
-        }
+        EnsureHunterPresentation(root, assets.HunterMaterial);
 
         var prefab = SaveAsPrefab(root, PrefabRoot + "/Hunter.prefab");
         Object.DestroyImmediate(root);
         return prefab;
+    }
+
+    public static void EnsureHunterPresentation(GameObject hunterRoot, Material markerMaterial = null)
+    {
+        if (hunterRoot == null)
+        {
+            return;
+        }
+
+        var uniformMaterial = CreateOrUpdateMaterial(MaterialRoot + "/HunterUniform.mat", new Color(0.12f, 0.17f, 0.28f));
+        var accentMaterial = CreateOrUpdateMaterial(MaterialRoot + "/HunterAccent.mat", new Color(0.96f, 0.78f, 0.18f));
+        var beltMaterial = CreateOrUpdateMaterial(MaterialRoot + "/HunterBelt.mat", new Color(0.07f, 0.08f, 0.11f));
+
+        if (hunterRoot.transform.Find("Vest") == null)
+        {
+            CreateHunterUniform(hunterRoot.transform, uniformMaterial, accentMaterial, beltMaterial);
+        }
+
+        var vision = hunterRoot.transform.Find("VisionCone");
+        var visionGo = vision != null ? vision.gameObject : null;
+        if (visionGo == null)
+        {
+            visionGo = new GameObject("VisionCone", typeof(MeshFilter), typeof(MeshRenderer), typeof(HunterVisionVisualizer));
+            visionGo.transform.SetParent(hunterRoot.transform, false);
+        }
+        else
+        {
+            if (visionGo.GetComponent<MeshFilter>() == null)
+            {
+                visionGo.AddComponent<MeshFilter>();
+            }
+
+            if (visionGo.GetComponent<MeshRenderer>() == null)
+            {
+                visionGo.AddComponent<MeshRenderer>();
+            }
+
+            if (visionGo.GetComponent<HunterVisionVisualizer>() == null)
+            {
+                visionGo.AddComponent<HunterVisionVisualizer>();
+            }
+        }
+
+        visionGo.transform.localPosition = Vector3.zero;
+        visionGo.transform.localRotation = Quaternion.identity;
+        visionGo.transform.localScale = Vector3.one;
+        var visionRenderer = visionGo.GetComponent<MeshRenderer>();
+        if (visionRenderer != null)
+        {
+            visionRenderer.sharedMaterial = CreateOrUpdateTransparentMaterial(
+                MaterialRoot + "/HunterVision.mat",
+                new Color(0.22f, 0.66f, 0.98f, 0.12f));
+        }
+
+        var marker = hunterRoot.transform.Find("HunterMarker")?.gameObject;
+        if (marker == null)
+        {
+            marker = CreatePrimitiveVisual(
+                "HunterMarker",
+                PrimitiveType.Sphere,
+                hunterRoot.transform,
+                markerMaterial,
+                new Vector3(0f, 2.18f, 0f),
+                new Vector3(0.18f, 0.18f, 0.18f));
+        }
+
+        marker.transform.localPosition = new Vector3(0f, 2.18f, 0f);
+        marker.transform.localRotation = Quaternion.identity;
+        marker.transform.localScale = new Vector3(0.18f, 0.18f, 0.18f);
+        var markerRenderer = marker.GetComponent<Renderer>();
+        if (markerRenderer != null && markerMaterial != null)
+        {
+            markerRenderer.sharedMaterial = markerMaterial;
+        }
+    }
+
+    private static void CreateHunterUniform(Transform parent, Material uniformMaterial, Material accentMaterial, Material beltMaterial)
+    {
+        CreatePrimitiveVisual("Vest", PrimitiveType.Cube, parent, uniformMaterial, new Vector3(0f, 1.18f, 0.16f), new Vector3(0.72f, 0.78f, 0.24f));
+        CreatePrimitiveVisual("Belt", PrimitiveType.Cube, parent, beltMaterial, new Vector3(0f, 0.88f, 0.08f), new Vector3(0.80f, 0.10f, 0.18f));
+        CreatePrimitiveVisual("Badge", PrimitiveType.Cube, parent, accentMaterial, new Vector3(0.17f, 1.30f, 0.30f), new Vector3(0.10f, 0.10f, 0.03f));
+        CreatePrimitiveVisual("ShoulderPatchL", PrimitiveType.Cube, parent, accentMaterial, new Vector3(-0.34f, 1.44f, 0.16f), new Vector3(0.08f, 0.12f, 0.05f));
+        CreatePrimitiveVisual("ShoulderPatchR", PrimitiveType.Cube, parent, accentMaterial, new Vector3(0.34f, 1.44f, 0.16f), new Vector3(0.08f, 0.12f, 0.05f));
+        CreatePrimitiveVisual("CapTop", PrimitiveType.Cube, parent, uniformMaterial, new Vector3(0f, 1.84f, 0.02f), new Vector3(0.56f, 0.12f, 0.46f));
+        CreatePrimitiveVisual("CapVisor", PrimitiveType.Cube, parent, uniformMaterial, new Vector3(0f, 1.76f, 0.25f), new Vector3(0.48f, 0.04f, 0.18f));
     }
 
     private static GameObject CreateCharacterVisual(
@@ -634,6 +713,49 @@ public static partial class BlendInBootstrapper
         material.color = color;
         material.SetColor("_Color", color);
         material.SetColor("_BaseColor", color);
+        EditorUtility.SetDirty(material);
+        return material;
+    }
+
+    private static Material CreateOrUpdateTransparentMaterial(string path, Color color)
+    {
+        var shader = Shader.Find("Universal Render Pipeline/Unlit")
+            ?? Shader.Find("Universal Render Pipeline/Particles/Unlit")
+            ?? FindPrototypeShader();
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(shader);
+            AssetDatabase.CreateAsset(material, path);
+        }
+        else if (material.shader != shader)
+        {
+            material.shader = shader;
+        }
+
+        if (material.HasProperty("_BaseColor"))
+        {
+            material.SetColor("_BaseColor", color);
+        }
+
+        if (material.HasProperty("_Color"))
+        {
+            material.SetColor("_Color", color);
+        }
+
+        if (material.HasProperty("_Surface"))
+        {
+            material.SetFloat("_Surface", 1f);
+        }
+
+        if (material.HasProperty("_Blend"))
+        {
+            material.SetFloat("_Blend", 0f);
+        }
+
+        material.enableInstancing = true;
+        material.renderQueue = 3000;
+        material.SetOverrideTag("RenderType", "Transparent");
         EditorUtility.SetDirty(material);
         return material;
     }

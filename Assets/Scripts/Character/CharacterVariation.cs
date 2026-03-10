@@ -13,16 +13,16 @@ public class CharacterVariation : MonoBehaviour
     public Renderer[] tintRenderers;
     public Color[] palette =
     {
-        new Color(0.88f, 0.32f, 0.28f),
-        new Color(0.18f, 0.50f, 0.83f),
-        new Color(0.24f, 0.67f, 0.42f),
-        new Color(0.90f, 0.72f, 0.21f),
-        new Color(0.64f, 0.35f, 0.78f),
-        new Color(0.85f, 0.48f, 0.20f),
-        new Color(0.34f, 0.72f, 0.77f),
-        new Color(0.65f, 0.25f, 0.28f),
-        new Color(0.56f, 0.58f, 0.20f),
-        new Color(0.30f, 0.30f, 0.34f)
+        new Color(0.33f, 0.41f, 0.50f),
+        new Color(0.29f, 0.44f, 0.35f),
+        new Color(0.52f, 0.40f, 0.32f),
+        new Color(0.68f, 0.60f, 0.48f),
+        new Color(0.47f, 0.33f, 0.36f),
+        new Color(0.40f, 0.49f, 0.58f),
+        new Color(0.58f, 0.55f, 0.50f),
+        new Color(0.31f, 0.31f, 0.35f),
+        new Color(0.45f, 0.53f, 0.29f),
+        new Color(0.56f, 0.46f, 0.38f)
     };
 
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -77,6 +77,11 @@ public class CharacterVariation : MonoBehaviour
         }
 
         ApplyColor(palette[Random.Range(0, palette.Length)]);
+    }
+
+    public void ApplyTint(Color color)
+    {
+        ApplyColor(color);
     }
 
     private void ApplyColor(Color color)

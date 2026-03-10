@@ -47,7 +47,9 @@ public class MissionUI : MonoBehaviour
             return;
         }
 
-        missionLabel.text = mission != null ? $"Mission: {mission.description}" : "Mission: --";
+        missionLabel.text = mission != null
+            ? $"{mission.description}\nTarget zone: {mission.targetZoneTag}"
+            : "No active mission";
     }
 
     private void HandleMissionCompleted(MissionData mission)

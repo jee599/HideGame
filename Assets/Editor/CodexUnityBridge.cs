@@ -90,6 +90,13 @@ public static class CodexUnityBridge
     public static void BuildCurrentTarget()
     {
         RebuildAndAutoBind();
+        BuildPreparedCurrentTarget();
+    }
+
+    [MenuItem("Blend In/Codex/Build Prepared Target")]
+    public static void BuildPreparedCurrentTarget()
+    {
+        PrototypeValidator.ValidatePrototypeMenu();
 
         var enabledScenes = EditorBuildSettings.scenes
             .Where(scene => scene.enabled)

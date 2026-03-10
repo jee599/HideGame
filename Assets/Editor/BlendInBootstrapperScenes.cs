@@ -139,6 +139,7 @@ public static partial class BlendInBootstrapper
         var hunter = (GameObject)PrefabUtility.InstantiatePrefab(assets.HunterPrefab);
         hunter.name = "Hunter";
         hunter.transform.position = new Vector3(-4f, 0.05f, 12f);
+        BlendInBootstrapper.EnsureHunterPresentation(hunter, assets.HunterMaterial);
 
         var camera = CreateFollowCamera(player.transform);
         var playerController = player.GetComponent<PlayerController>();
@@ -370,16 +371,17 @@ public static partial class BlendInBootstrapper
         var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(CameraFollow));
         cameraObject.tag = "MainCamera";
         var camera = cameraObject.GetComponent<Camera>();
-        camera.backgroundColor = new Color(0.66f, 0.82f, 0.94f);
+        camera.backgroundColor = new Color(0.70f, 0.84f, 0.96f);
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.fieldOfView = 58f;
-        camera.nearClipPlane = 0.2f;
+        camera.fieldOfView = 50f;
+        camera.nearClipPlane = 0.15f;
+        camera.farClipPlane = 180f;
 
         var follow = cameraObject.GetComponent<CameraFollow>();
         follow.target = target;
-        follow.offset = new Vector3(0f, 13.5f, -10.5f);
-        follow.positionLerp = 5f;
-        follow.rotationLerp = 6f;
+        follow.offset = new Vector3(0f, 8.6f, -7.4f);
+        follow.positionLerp = 6.5f;
+        follow.rotationLerp = 7.5f;
         return camera;
     }
 
@@ -387,11 +389,11 @@ public static partial class BlendInBootstrapper
     {
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.ExponentialSquared;
-        RenderSettings.fogDensity = 0.0065f;
-        RenderSettings.fogColor = new Color(0.78f, 0.86f, 0.92f);
+        RenderSettings.fogDensity = 0.0048f;
+        RenderSettings.fogColor = new Color(0.80f, 0.88f, 0.94f);
         RenderSettings.ambientMode = AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.78f, 0.83f, 0.88f);
-        RenderSettings.subtractiveShadowColor = new Color(0.30f, 0.36f, 0.42f);
+        RenderSettings.ambientLight = new Color(0.84f, 0.88f, 0.92f);
+        RenderSettings.subtractiveShadowColor = new Color(0.24f, 0.30f, 0.36f);
 
         var profile = CreateOrUpdateAsset<VolumeProfile>(ProjectRoot + "/Art/PrototypePostFX.asset", asset =>
         {
@@ -401,22 +403,22 @@ public static partial class BlendInBootstrapper
         var bloom = GetOrCreateVolumeComponent<Bloom>(profile);
 
         bloom.active = true;
-        bloom.intensity.Override(0.18f);
-        bloom.threshold.Override(0.92f);
-        bloom.scatter.Override(0.65f);
+        bloom.intensity.Override(0.26f);
+        bloom.threshold.Override(0.88f);
+        bloom.scatter.Override(0.72f);
 
         var colorAdjustments = GetOrCreateVolumeComponent<ColorAdjustments>(profile);
 
         colorAdjustments.active = true;
-        colorAdjustments.postExposure.Override(0.08f);
-        colorAdjustments.contrast.Override(8f);
-        colorAdjustments.saturation.Override(6f);
+        colorAdjustments.postExposure.Override(0.14f);
+        colorAdjustments.contrast.Override(12f);
+        colorAdjustments.saturation.Override(10f);
 
         var vignette = GetOrCreateVolumeComponent<Vignette>(profile);
 
         vignette.active = true;
-        vignette.intensity.Override(0.14f);
-        vignette.smoothness.Override(0.72f);
+        vignette.intensity.Override(0.18f);
+        vignette.smoothness.Override(0.78f);
         EditorUtility.SetDirty(profile);
 
         var volumeGo = new GameObject("Global Volume", typeof(Volume));
@@ -430,110 +432,151 @@ public static partial class BlendInBootstrapper
     {
         var playerDisguise = player.GetComponent<PlayerDisguise>();
         var suspicion = player.GetComponent<SuspicionSystem>();
+        var minimapTexture = CreateOrUpdateRenderTexture(ProjectRoot + "/Art/PrototypeMinimap.renderTexture", 768, 768);
+        CreateMinimapCamera(player != null ? player.transform : null, minimapTexture);
 
         CreateEventSystem();
         var canvas = CreateCanvas("HUD");
-        var panelColor = new Color(0.07f, 0.10f, 0.14f, 0.74f);
+        var panelColor = new Color(0.05f, 0.07f, 0.11f, 0.82f);
+        var panelAltColor = new Color(0.09f, 0.13f, 0.18f, 0.92f);
+        var accentColor = new Color(0.18f, 0.74f, 0.90f, 0.98f);
+        var positiveColor = new Color(0.20f, 0.78f, 0.52f, 0.96f);
 
+        var timerCard = CreateImageElement("TimerCard", canvas.transform, panelColor);
+        Stretch((RectTransform)timerCard.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(34f, -28f), new Vector2(270f, 66f));
+        var timerAccent = CreateImageElement("Accent", timerCard.transform, accentColor);
+        Stretch((RectTransform)timerAccent.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 6f));
+        var timerHeader = CreateTextElement("Header", timerCard.transform, "SHIFT CLOCK", 14, TextAlignmentOptions.MidlineLeft);
+        Stretch((RectTransform)timerHeader.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -16f), new Vector2(-36f, 20f));
         var timerRoot = new GameObject("TimerUI", typeof(RectTransform), typeof(TimerUI));
-        timerRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)timerRoot.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(28f, -24f), new Vector2(190f, 46f));
-        var timerBg = CreateImageElement("Background", timerRoot.transform, panelColor);
-        Stretch((RectTransform)timerBg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        var timerText = CreateTextElement("Label", timerRoot.transform, "08:00 | 03:00 left", 22, TextAlignmentOptions.Center);
-        Stretch((RectTransform)timerText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+        timerRoot.transform.SetParent(timerCard.transform, false);
+        Stretch((RectTransform)timerRoot.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var timerText = CreateTextElement("Label", timerRoot.transform, "08:00  |  03:00 left", 24, TextAlignmentOptions.BottomLeft);
+        Stretch((RectTransform)timerText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(18f, 8f), new Vector2(-36f, -22f));
         var timerUi = timerRoot.GetComponent<TimerUI>();
         timerUi.timerLabel = timerText;
 
+        var guideRoot = CreateImageElement("GuideCard", canvas.transform, new Color(0.05f, 0.08f, 0.11f, 0.72f));
+        Stretch((RectTransform)guideRoot.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(760f, 54f));
+        var guideAccent = CreateImageElement("Accent", guideRoot.transform, new Color(1f, 1f, 1f, 0.06f));
+        Stretch((RectTransform)guideAccent.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), Vector2.zero, new Vector2(8f, 0f));
+        var guideText = CreateTextElement("Guide", guideRoot.transform, "Survive until 20:00. Move like the crowd. Stop inside mission zones to score.", 18, TextAlignmentOptions.Center);
+        Stretch((RectTransform)guideText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(22f, 0f), new Vector2(-44f, -8f));
+        timerUi.guideLabel = guideText;
+
+        var missionCard = CreateImageElement("MissionCard", canvas.transform, panelColor);
+        Stretch((RectTransform)missionCard.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(34f, -114f), new Vector2(430f, 132f));
+        var missionAccent = CreateImageElement("Accent", missionCard.transform, positiveColor);
+        Stretch((RectTransform)missionAccent.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 6f));
+        var missionHeader = CreateTextElement("Header", missionCard.transform, "ACTIVE MISSION", 14, TextAlignmentOptions.MidlineLeft);
+        Stretch((RectTransform)missionHeader.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -16f), new Vector2(-36f, 20f));
         var missionRoot = new GameObject("MissionUI", typeof(RectTransform), typeof(MissionUI));
-        missionRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)missionRoot.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(28f, -82f), new Vector2(360f, 104f));
-        var missionBg = CreateImageElement("Background", missionRoot.transform, panelColor);
-        Stretch((RectTransform)missionBg.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        var missionText = CreateTextElement("Label", missionRoot.transform, "Mission: --", 20, TextAlignmentOptions.TopLeft);
-        Stretch((RectTransform)missionText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(16f, -12f), new Vector2(-32f, -34f));
-        var missionProgressBg = CreateImageElement("ProgressBg", missionRoot.transform, new Color(1f, 1f, 1f, 0.12f));
-        Stretch((RectTransform)missionProgressBg.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 12f), new Vector2(-32f, 12f));
-        var missionProgressFill = CreateImageElement("ProgressFill", missionProgressBg.transform, new Color(0.25f, 0.80f, 0.50f, 0.95f));
+        missionRoot.transform.SetParent(missionCard.transform, false);
+        Stretch((RectTransform)missionRoot.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var missionText = CreateTextElement("Label", missionRoot.transform, "Mission: --", 24, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)missionText.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -42f), new Vector2(-36f, 58f));
+        var missionHint = CreateTextElement("Hint", missionRoot.transform, "Stay still in the target zone to complete the objective.", 16, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)missionHint.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -88f), new Vector2(-36f, 34f));
+        var missionProgressBg = CreateImageElement("ProgressBg", missionRoot.transform, new Color(1f, 1f, 1f, 0.10f));
+        Stretch((RectTransform)missionProgressBg.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 18f), new Vector2(-36f, 14f));
+        var missionProgressFill = CreateImageElement("ProgressFill", missionProgressBg.transform, positiveColor);
         missionProgressFill.type = Image.Type.Filled;
         missionProgressFill.fillMethod = Image.FillMethod.Horizontal;
-        Stretch((RectTransform)missionProgressFill.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+        Stretch((RectTransform)missionProgressFill.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         var missionUi = missionRoot.GetComponent<MissionUI>();
         missionUi.missionManager = missionManager;
         missionUi.missionLabel = missionText;
         missionUi.progressFill = missionProgressFill;
 
+        var intelCard = CreateImageElement("IntelCard", canvas.transform, panelAltColor);
+        Stretch((RectTransform)intelCard.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-34f, -28f), new Vector2(376f, 300f));
+        var intelAccent = CreateImageElement("Accent", intelCard.transform, new Color(0.94f, 0.35f, 0.24f, 0.96f));
+        Stretch((RectTransform)intelAccent.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 6f));
+        var intelHeader = CreateTextElement("Header", intelCard.transform, "HUNTER INTEL", 14, TextAlignmentOptions.MidlineLeft);
+        Stretch((RectTransform)intelHeader.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -16f), new Vector2(-120f, 20f));
+        var minimapToggle = CreateButtonElement("MinimapToggle", intelCard.transform, new Color(1f, 1f, 1f, 0.08f));
+        Stretch((RectTransform)minimapToggle.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-18f, -18f), new Vector2(104f, 26f));
+        var minimapToggleLabel = CreateTextElement("Label", minimapToggle.transform, "EXPAND", 13, TextAlignmentOptions.Center);
+        Stretch((RectTransform)minimapToggleLabel.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var minimapFrame = CreateImageElement("MinimapFrame", intelCard.transform, new Color(0.02f, 0.03f, 0.05f, 0.92f));
+        Stretch((RectTransform)minimapFrame.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -44f), new Vector2(-36f, 148f));
+        var minimapRawGo = new GameObject("Map", typeof(RectTransform), typeof(RawImage));
+        minimapRawGo.transform.SetParent(minimapFrame.transform, false);
+        var minimapRaw = minimapRawGo.GetComponent<RawImage>();
+        minimapRaw.texture = minimapTexture;
+        minimapRaw.color = Color.white;
+        Stretch((RectTransform)minimapRaw.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(6f, 6f), new Vector2(-12f, -12f));
+        var minimapLabel = CreateTextElement("State", intelCard.transform, "MINIMAP", 14, TextAlignmentOptions.MidlineLeft);
+        Stretch((RectTransform)minimapLabel.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 100f), new Vector2(-36f, 20f));
+        var scoreText = CreateTextElement("Score", intelCard.transform, "Score  0", 18, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)scoreText.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 66f), new Vector2(-36f, 24f));
+        var hunterText = CreateTextElement("Hunter", intelCard.transform, "Hunter  Patrolling", 18, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)hunterText.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 40f), new Vector2(-36f, 24f));
+        var eventText = CreateTextElement("Event", intelCard.transform, "Event  None", 17, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)eventText.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 16f), new Vector2(-36f, 22f));
+        timerUi.scoreLabel = scoreText;
+        timerUi.hunterLabel = hunterText;
+        timerUi.eventLabel = eventText;
+
+        var minimapUiGo = new GameObject("MinimapUI", typeof(RectTransform), typeof(MinimapUI));
+        minimapUiGo.transform.SetParent(canvas.transform, false);
+        var minimapUi = minimapUiGo.GetComponent<MinimapUI>();
+        minimapUi.minimapRoot = (RectTransform)intelCard.transform;
+        minimapUi.mapFrame = (RectTransform)minimapFrame.transform;
+        minimapUi.mapImage = minimapRaw;
+        minimapUi.stateLabel = minimapLabel;
+        minimapUi.toggleLabel = minimapToggleLabel;
+        minimapUi.toggleButton = minimapToggle;
+        minimapUi.collapsedSize = new Vector2(376f, 300f);
+        minimapUi.expandedSize = new Vector2(500f, 392f);
+        minimapUi.collapsedMapSize = new Vector2(340f, 148f);
+        minimapUi.expandedMapSize = new Vector2(464f, 220f);
+
+        var suspicionCard = CreateImageElement("SuspicionCard", canvas.transform, panelAltColor);
+        Stretch((RectTransform)suspicionCard.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(390f, 72f));
+        var suspicionAccent = CreateImageElement("Accent", suspicionCard.transform, new Color(0.96f, 0.76f, 0.16f, 0.98f));
+        Stretch((RectTransform)suspicionAccent.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 6f));
+        var suspicionHeader = CreateTextElement("Header", suspicionCard.transform, "SUSPICION", 14, TextAlignmentOptions.MidlineLeft);
+        Stretch((RectTransform)suspicionHeader.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -16f), new Vector2(-36f, 20f));
         var suspicionRoot = new GameObject("SuspicionUI", typeof(RectTransform), typeof(SuspicionMeterUI));
-        suspicionRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)suspicionRoot.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 42f), new Vector2(320f, 38f));
-        var suspicionBg = CreateImageElement("Background", suspicionRoot.transform, panelColor);
-        Stretch((RectTransform)suspicionBg.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        var suspicionFill = CreateImageElement("Fill", suspicionBg.transform, new Color(0.90f, 0.80f, 0.10f, 0.95f));
+        suspicionRoot.transform.SetParent(suspicionCard.transform, false);
+        Stretch((RectTransform)suspicionRoot.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var suspicionBarBg = CreateImageElement("BarBg", suspicionRoot.transform, new Color(1f, 1f, 1f, 0.10f));
+        Stretch((RectTransform)suspicionBarBg.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 16f), new Vector2(-36f, 16f));
+        var suspicionFill = CreateImageElement("Fill", suspicionBarBg.transform, new Color(0.90f, 0.80f, 0.10f, 0.95f));
         suspicionFill.type = Image.Type.Filled;
         suspicionFill.fillMethod = Image.FillMethod.Horizontal;
         suspicionFill.fillAmount = 0f;
-        Stretch((RectTransform)suspicionFill.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(4f, 4f), new Vector2(-8f, -8f));
-        var suspicionLabel = CreateTextElement("Value", suspicionRoot.transform, "Suspicion 0", 18, TextAlignmentOptions.Center);
-        Stretch((RectTransform)suspicionLabel.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+        Stretch((RectTransform)suspicionFill.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var suspicionLabel = CreateTextElement("Value", suspicionRoot.transform, "CALM 0", 20, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)suspicionLabel.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -40f), new Vector2(-36f, 24f));
         var suspicionUi = suspicionRoot.GetComponent<SuspicionMeterUI>();
         suspicionUi.suspicionSystem = suspicion;
         suspicionUi.fillImage = suspicionFill;
         suspicionUi.valueLabel = suspicionLabel;
         suspicionUi.fillGradient = CreateSuspicionGradient();
 
-        var disguiseButton = CreateButtonElement("DisguiseButton", canvas.transform, panelColor);
-        Stretch((RectTransform)disguiseButton.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-28f, 28f), new Vector2(168f, 72f));
-        var disguiseLabel = CreateTextElement("Label", disguiseButton.transform, "Disguise", 20, TextAlignmentOptions.Center);
-        Stretch((RectTransform)disguiseLabel.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 10f), new Vector2(-12f, -24f));
-        var disguiseProgress = CreateImageElement("Progress", disguiseButton.transform, new Color(0.20f, 0.75f, 0.45f, 0.9f));
+        var disguiseCard = CreateButtonElement("DisguiseButton", canvas.transform, panelAltColor);
+        Stretch((RectTransform)disguiseCard.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-34f, 34f), new Vector2(210f, 94f));
+        var disguiseAccent = CreateImageElement("Accent", disguiseCard.transform, positiveColor);
+        Stretch((RectTransform)disguiseAccent.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 6f));
+        var disguiseTitle = CreateTextElement("Label", disguiseCard.transform, "DISGUISE", 24, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)disguiseTitle.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -18f), new Vector2(-36f, 24f));
+        var disguiseProgressBg = CreateImageElement("ProgressBg", disguiseCard.transform, new Color(1f, 1f, 1f, 0.10f));
+        Stretch((RectTransform)disguiseProgressBg.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(18f, 18f), new Vector2(-36f, 14f));
+        var disguiseProgress = CreateImageElement("Progress", disguiseProgressBg.transform, positiveColor);
         disguiseProgress.type = Image.Type.Filled;
         disguiseProgress.fillMethod = Image.FillMethod.Horizontal;
-        Stretch((RectTransform)disguiseProgress.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 10f), new Vector2(-32f, 8f));
-        var disguiseCharges = CreateTextElement("Charges", disguiseButton.transform, "x3 ready", 16, TextAlignmentOptions.Center);
-        Stretch((RectTransform)disguiseCharges.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, -16f), new Vector2(-12f, -24f));
+        Stretch((RectTransform)disguiseProgress.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var disguiseCharges = CreateTextElement("Charges", disguiseCard.transform, "Disguise x3", 18, TextAlignmentOptions.BottomLeft);
+        Stretch((RectTransform)disguiseCharges.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(18f, 0f), new Vector2(-36f, -30f));
         var disguiseUiGo = new GameObject("DisguiseUI", typeof(RectTransform), typeof(DisguiseUI));
         disguiseUiGo.transform.SetParent(canvas.transform, false);
         var disguiseUi = disguiseUiGo.GetComponent<DisguiseUI>();
         disguiseUi.playerDisguise = playerDisguise;
-        disguiseUi.disguiseButton = disguiseButton;
+        disguiseUi.disguiseButton = disguiseCard;
         disguiseUi.progressFill = disguiseProgress;
         disguiseUi.chargesLabel = disguiseCharges;
-
-        var statusRoot = new GameObject("StatusUI", typeof(RectTransform));
-        statusRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)statusRoot.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-28f, -24f), new Vector2(320f, 108f));
-        var statusBg = CreateImageElement("Background", statusRoot.transform, panelColor);
-        Stretch((RectTransform)statusBg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        var scoreText = CreateTextElement("Score", statusRoot.transform, "Score  0", 19, TextAlignmentOptions.TopLeft);
-        Stretch((RectTransform)scoreText.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -10f), new Vector2(-32f, 28f));
-        var hunterText = CreateTextElement("Hunter", statusRoot.transform, "Hunter  Patrolling", 19, TextAlignmentOptions.TopLeft);
-        Stretch((RectTransform)hunterText.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -40f), new Vector2(-32f, 24f));
-        var eventText = CreateTextElement("Event", statusRoot.transform, "Event  None", 18, TextAlignmentOptions.TopLeft);
-        Stretch((RectTransform)eventText.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -68f), new Vector2(-32f, 24f));
-        timerUi.scoreLabel = scoreText;
-        timerUi.hunterLabel = hunterText;
-        timerUi.eventLabel = eventText;
-
-        var guideRoot = new GameObject("GuideUI", typeof(RectTransform));
-        guideRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)guideRoot.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(760f, 52f));
-        var guideBg = CreateImageElement("Background", guideRoot.transform, new Color(0.07f, 0.10f, 0.14f, 0.68f));
-        Stretch((RectTransform)guideBg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        var guideText = CreateTextElement("Guide", guideRoot.transform, "Survive until 20:00. Move like the crowd. Stop inside mission zones to score.", 18, TextAlignmentOptions.Center);
-        Stretch((RectTransform)guideText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(18f, 0f), new Vector2(-36f, -8f));
-        timerUi.guideLabel = guideText;
-
-        var minimapButton = CreateButtonElement("MinimapButton", canvas.transform, new Color(0.05f, 0.08f, 0.10f, 0.6f));
-        Stretch((RectTransform)minimapButton.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-28f, 116f), new Vector2(108f, 48f));
-        var minimapText = CreateTextElement("Label", minimapButton.transform, "Map", 16, TextAlignmentOptions.Center);
-        Stretch((RectTransform)minimapText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        var minimapUiGo = new GameObject("MinimapUI", typeof(RectTransform), typeof(MinimapUI));
-        minimapUiGo.transform.SetParent(canvas.transform, false);
-        var minimapUi = minimapUiGo.GetComponent<MinimapUI>();
-        minimapUi.minimapRoot = (RectTransform)minimapButton.transform;
-        minimapUi.collapsedSize = new Vector2(108f, 48f);
-        minimapUi.expandedSize = new Vector2(220f, 140f);
-        minimapUi.toggleButton = minimapButton;
 
         var gameOverOverlay = CreateImageElement("GameOverOverlay", canvas.transform, new Color(0f, 0f, 0f, 0.7f));
         Stretch((RectTransform)gameOverOverlay.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
@@ -553,6 +596,58 @@ public static partial class BlendInBootstrapper
         gameOverOverlay.gameObject.SetActive(false);
 
         CreateJoystick(canvas.transform);
+    }
+
+    private static Camera CreateMinimapCamera(Transform target, RenderTexture renderTexture)
+    {
+        var cameraObject = new GameObject("MinimapCamera", typeof(Camera), typeof(MinimapCameraFollow));
+        cameraObject.SetActive(true);
+        var camera = cameraObject.GetComponent<Camera>();
+        camera.orthographic = true;
+        camera.orthographicSize = 34f;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(0.23f, 0.28f, 0.31f);
+        camera.nearClipPlane = 0.3f;
+        camera.farClipPlane = 220f;
+        camera.allowHDR = false;
+        camera.enabled = true;
+        camera.targetTexture = renderTexture;
+        camera.depth = -5f;
+
+        var follow = cameraObject.GetComponent<MinimapCameraFollow>();
+        follow.target = target;
+        follow.height = 58f;
+        follow.positionLerp = 12f;
+
+        if (target != null)
+        {
+            cameraObject.transform.position = target.position + Vector3.up * follow.height;
+        }
+
+        cameraObject.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        return camera;
+    }
+
+    private static RenderTexture CreateOrUpdateRenderTexture(string path, int width, int height)
+    {
+        var renderTexture = AssetDatabase.LoadAssetAtPath<RenderTexture>(path);
+        if (renderTexture == null)
+        {
+            renderTexture = new RenderTexture(width, height, 16)
+            {
+                name = "PrototypeMinimap"
+            };
+            AssetDatabase.CreateAsset(renderTexture, path);
+        }
+
+        renderTexture.width = width;
+        renderTexture.height = height;
+        renderTexture.depth = 16;
+        renderTexture.wrapMode = TextureWrapMode.Clamp;
+        renderTexture.filterMode = FilterMode.Bilinear;
+        renderTexture.antiAliasing = 1;
+        EditorUtility.SetDirty(renderTexture);
+        return renderTexture;
     }
 
     private static Canvas CreateCanvas(string name)
@@ -594,17 +689,20 @@ public static partial class BlendInBootstrapper
         var joystickRoot = new GameObject("JoystickUI", typeof(RectTransform), typeof(JoystickUI));
         joystickRoot.transform.SetParent(canvas, false);
         Stretch((RectTransform)joystickRoot.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        var background = CreateImageElement("Background", joystickRoot.transform, new Color(0f, 0f, 0f, 0.28f));
+        var background = CreateImageElement("Background", joystickRoot.transform, new Color(0.05f, 0.08f, 0.11f, 0.58f));
         background.raycastTarget = true;
-        Stretch((RectTransform)background.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(36f, 36f), new Vector2(180f, 180f));
-        var handle = CreateImageElement("Handle", background.transform, new Color(1f, 1f, 1f, 0.75f));
+        Stretch((RectTransform)background.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(42f, 42f), new Vector2(170f, 170f));
+        var ring = CreateImageElement("Ring", background.transform, new Color(1f, 1f, 1f, 0.06f));
+        ring.raycastTarget = false;
+        Stretch((RectTransform)ring.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(126f, 126f));
+        var handle = CreateImageElement("Handle", background.transform, new Color(0.80f, 0.96f, 1f, 0.92f));
         handle.raycastTarget = false;
-        Stretch((RectTransform)handle.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(72f, 72f));
+        Stretch((RectTransform)handle.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(66f, 66f));
 
         var joystick = joystickRoot.GetComponent<JoystickUI>();
         joystick.background = (RectTransform)background.transform;
         joystick.handle = (RectTransform)handle.transform;
-        joystick.maxRadius = 70f;
+        joystick.maxRadius = 58f;
     }
 
     private static Gradient CreateSuspicionGradient()
@@ -630,7 +728,8 @@ public static partial class BlendInBootstrapper
         var lightObject = new GameObject("Directional Light", typeof(Light));
         var light = lightObject.GetComponent<Light>();
         light.type = LightType.Directional;
-        light.intensity = 1.15f;
+        light.intensity = 1.28f;
+        light.shadows = LightShadows.Soft;
         lightObject.transform.rotation = Quaternion.Euler(48f, -32f, 0f);
     }
 
@@ -1183,7 +1282,7 @@ public static partial class BlendInBootstrapper
         var behaviours = instance.GetComponentsInChildren<Behaviour>(true);
         for (var i = 0; i < behaviours.Length; i++)
         {
-            if (behaviours[i] is Animator)
+            if (behaviours[i] == null || behaviours[i] is Animator)
             {
                 continue;
             }
@@ -1194,7 +1293,10 @@ public static partial class BlendInBootstrapper
         var colliders = instance.GetComponentsInChildren<Collider>(true);
         for (var i = 0; i < colliders.Length; i++)
         {
-            colliders[i].enabled = false;
+            if (colliders[i] != null)
+            {
+                colliders[i].enabled = false;
+            }
         }
     }
 

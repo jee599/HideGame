@@ -154,6 +154,11 @@ public static class PrototypeValidator
             {
                 issues.Add("Hunter patrol route not assigned");
             }
+
+            if (hunter.GetComponentInChildren<HunterVisionVisualizer>(true) == null)
+            {
+                issues.Add("Hunter vision visualizer missing");
+            }
         }
 
         var eventSystem = Object.FindFirstObjectByType<EventSystem>();
@@ -193,9 +198,14 @@ public static class PrototypeValidator
         }
 
         var minimapUi = Object.FindFirstObjectByType<MinimapUI>(FindObjectsInactive.Include);
-        if (minimapUi == null || minimapUi.toggleButton == null || minimapUi.minimapRoot == null)
+        if (minimapUi == null || minimapUi.toggleButton == null || minimapUi.minimapRoot == null || minimapUi.mapFrame == null || minimapUi.mapImage == null)
         {
             issues.Add("MinimapUI is incomplete");
+        }
+
+        if (Object.FindFirstObjectByType<MinimapCameraFollow>(FindObjectsInactive.Include) == null)
+        {
+            issues.Add("Minimap camera missing");
         }
 
         var gameOverUi = Object.FindFirstObjectByType<GameOverUI>(FindObjectsInactive.Include);
