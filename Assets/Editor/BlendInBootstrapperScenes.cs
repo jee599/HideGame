@@ -17,44 +17,100 @@ public static partial class BlendInBootstrapper
 {
     private static void CreateScenes(BlendInBootstrapAssets assets)
     {
-        CreateMainMenuScene();
-        CreateResultScene();
+        CreateMainMenuScene(assets);
+        CreateResultScene(assets);
         CreateGameScene(assets);
         ApplyBuildSettings();
     }
 
-    private static void CreateMainMenuScene()
+    private static void CreateMainMenuScene(BlendInBootstrapAssets assets)
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         CreateDirectionalLight();
-        CreateStaticCamera(new Vector3(0f, 14f, -18f), new Vector3(18f, 0f, 0f));
-        CreatePrimitiveGround(new Vector3(0f, 0f, 0f), Vector3.one * 3f, Color.gray);
+        CreateAtmosphere();
+        var camera = CreateStaticCamera(new Vector3(-14f, 11f, -18f), new Vector3(26f, 32f, 0f));
+        camera.backgroundColor = new Color(0.66f, 0.82f, 0.94f);
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.fieldOfView = 56f;
+        CreateMenuBackdrop(assets);
+        CreateEventSystem();
 
         var canvas = CreateCanvas("MainMenuCanvas");
-        var title = CreateTextElement("Title", canvas.transform, "BLEND IN", 52, TextAlignmentOptions.Center);
-        Stretch((RectTransform)title.transform, new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(600f, 100f));
+        var panelColor = new Color(0.05f, 0.08f, 0.12f, 0.80f);
+        var card = CreateImageElement("Card", canvas.transform, panelColor);
+        Stretch((RectTransform)card.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(48f, 0f), new Vector2(640f, -120f));
 
-        var body = CreateTextElement("Body", canvas.transform, "Use Blend In/Bootstrap Prototype to rebuild the sample scenes.", 24, TextAlignmentOptions.Center);
-        Stretch((RectTransform)body.transform, new Vector2(0.5f, 0.62f), new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(900f, 80f));
+        var title = CreateTextElement("Title", canvas.transform, "BLEND IN", 52, TextAlignmentOptions.Center);
+        Stretch((RectTransform)title.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(368f, -132f), new Vector2(520f, 82f));
+
+        var subtitle = CreateTextElement("Subtitle", canvas.transform, "Move like the crowd, steal routines, and survive until nightfall.", 25, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)subtitle.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(368f, -210f), new Vector2(520f, 80f));
+
+        var status = CreateTextElement("Status", canvas.transform, "3 minutes. 100 citizens. 1 hunter.", 24, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)status.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(368f, -274f), new Vector2(520f, 52f));
+
+        var instructions = CreateTextElement(
+            "Instructions",
+            canvas.transform,
+            "Watch the city first.\nBlend into busy zones.\nStop in mission areas to score.\nUse disguise sparingly when sightlines break.",
+            22,
+            TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)instructions.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(368f, -386f), new Vector2(520f, 210f));
+
+        var startButton = CreateMenuButton(canvas.transform, "StartButton", "Start Run", new Color(0.20f, 0.68f, 0.42f, 0.96f));
+        Stretch((RectTransform)startButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(220f, 132f), new Vector2(320f, 72f));
+        var quitButton = CreateMenuButton(canvas.transform, "QuitButton", "Quit", new Color(0.18f, 0.24f, 0.32f, 0.96f));
+        Stretch((RectTransform)quitButton.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(220f, 44f), new Vector2(320f, 60f));
+
+        var controllerGo = new GameObject("MainMenuController", typeof(RectTransform), typeof(MainMenuController));
+        controllerGo.transform.SetParent(canvas.transform, false);
+        var controller = controllerGo.GetComponent<MainMenuController>();
+        controller.startButton = startButton;
+        controller.quitButton = quitButton;
+        controller.statusLabel = status;
 
         EditorSceneManager.SaveScene(scene, SceneRoot + "/MainMenu.unity");
     }
 
-    private static void CreateResultScene()
+    private static void CreateResultScene(BlendInBootstrapAssets assets)
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         CreateDirectionalLight();
-        CreateStaticCamera(new Vector3(0f, 12f, -16f), new Vector3(20f, 0f, 0f));
-        CreatePrimitiveGround(new Vector3(0f, 0f, 0f), Vector3.one * 2f, Color.gray);
+        CreateAtmosphere();
+        var camera = CreateStaticCamera(new Vector3(-12f, 10f, -17f), new Vector3(24f, 34f, 0f));
+        camera.backgroundColor = new Color(0.66f, 0.82f, 0.94f);
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.fieldOfView = 58f;
+        CreateMenuBackdrop(assets);
+        CreateEventSystem();
 
         var canvas = CreateCanvas("ResultCanvas");
-        var title = CreateTextElement("Title", canvas.transform, "Result Scene Placeholder", 42, TextAlignmentOptions.Center);
-        Stretch((RectTransform)title.transform, new Vector2(0.5f, 0.70f), new Vector2(0.5f, 0.70f), Vector2.zero, new Vector2(900f, 80f));
+        var overlay = CreateImageElement("Overlay", canvas.transform, new Color(0.04f, 0.06f, 0.10f, 0.78f));
+        Stretch((RectTransform)overlay.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(860f, 520f));
+        var title = CreateTextElement("Title", overlay.transform, "Blend Successful", 46, TextAlignmentOptions.Center);
+        Stretch((RectTransform)title.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -78f), new Vector2(700f, 72f));
+        var score = CreateTextElement("Score", overlay.transform, "Score 0", 34, TextAlignmentOptions.Center);
+        Stretch((RectTransform)score.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -148f), new Vector2(520f, 54f));
+        var summary = CreateTextElement("Summary", overlay.transform, "You survived until 20:00.", 24, TextAlignmentOptions.Center);
+        Stretch((RectTransform)summary.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 18f), new Vector2(680f, 96f));
+        var detail = CreateTextElement("Detail", overlay.transform, "Missions 0   Peak Suspicion 0   Disguises 0", 20, TextAlignmentOptions.Center);
+        Stretch((RectTransform)detail.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -44f), new Vector2(700f, 44f));
+        var retryButton = CreateMenuButton(overlay.transform, "RetryButton", "Retry", new Color(0.20f, 0.68f, 0.42f, 0.96f));
+        Stretch((RectTransform)retryButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-110f, 74f), new Vector2(220f, 62f));
+        var menuButton = CreateMenuButton(overlay.transform, "MenuButton", "Main Menu", new Color(0.18f, 0.24f, 0.32f, 0.96f));
+        Stretch((RectTransform)menuButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(110f, 74f), new Vector2(220f, 62f));
 
-        var body = CreateTextElement("Body", canvas.transform, "GameOverUI currently displays inside GameScene. Use this scene later for flow polish.", 22, TextAlignmentOptions.Center);
-        Stretch((RectTransform)body.transform, new Vector2(0.5f, 0.58f), new Vector2(0.5f, 0.58f), Vector2.zero, new Vector2(1000f, 80f));
+        var controllerGo = new GameObject("ResultSceneController", typeof(RectTransform), typeof(ResultSceneController));
+        controllerGo.transform.SetParent(canvas.transform, false);
+        var controller = controllerGo.GetComponent<ResultSceneController>();
+        controller.titleLabel = title;
+        controller.scoreLabel = score;
+        controller.summaryLabel = summary;
+        controller.detailLabel = detail;
+        controller.retryButton = retryButton;
+        controller.menuButton = menuButton;
 
         EditorSceneManager.SaveScene(scene, SceneRoot + "/ResultScene.unity");
     }
@@ -670,6 +726,10 @@ public static partial class BlendInBootstrapper
         CreateTree(park.transform, new Vector3(-4f, 0.12f, 8f), trunkMaterial, foliageMaterial, 1.1f, assets.ArtSet);
         CreateTree(park.transform, new Vector3(8f, 0.12f, -10f), trunkMaterial, foliageMaterial, 1.45f, assets.ArtSet);
         CreateTree(park.transform, new Vector3(12f, 0.12f, 8f), trunkMaterial, foliageMaterial, 1.2f, assets.ArtSet);
+        CreateParkAccent(park.transform, new Vector3(-10f, 0.12f, 8f), new Vector3(2.6f, 1.8f, 2.6f), assets.ArtSet, "plant_bush", "tree-shrub");
+        CreateParkAccent(park.transform, new Vector3(-1f, 0.12f, -9f), new Vector3(1.6f, 1.1f, 1.6f), assets.ArtSet, "rock_small", "rock");
+        CreateParkAccent(park.transform, new Vector3(10f, 0.12f, 2f), new Vector3(1.4f, 1f, 1.4f), assets.ArtSet, "flower", "grass");
+        CreateParkAccent(park.transform, new Vector3(14f, 0.12f, -4f), new Vector3(2f, 1.1f, 2f), assets.ArtSet, "grass_large", "grass");
     }
 
     private static void CreateSidewalk(Transform parent, BlendInArtSet artSet, string name, Vector3 position, Vector3 scale, Material material)
@@ -1013,6 +1073,89 @@ public static partial class BlendInBootstrapper
         CreateTree(parent, new Vector3(26f, 0.02f, 14f), trunkMaterial, foliageMaterial, 0.95f, artSet);
         CreateStreetDetail(parent, FindPrefabByTokens(artSet != null ? artSet.streetPropPrefabs : null, "dumpster"), new Vector3(-28f, 0.02f, 11f), new Vector3(1.8f, 1.8f, 1.8f), 0.95f);
         CreateStreetDetail(parent, FindPrefabByTokens(artSet != null ? artSet.streetPropPrefabs : null, "truck"), new Vector3(42f, 0.02f, 14f), new Vector3(5.5f, 3.4f, 2.6f), 0.92f);
+    }
+
+    private static void CreateMenuBackdrop(BlendInBootstrapAssets assets)
+    {
+        var root = new GameObject("MenuBackdrop").transform;
+        var sidewalkMaterial = CreateOrUpdateMaterial(MaterialRoot + "/MenuSidewalk.mat", new Color(0.76f, 0.77f, 0.73f));
+        var trimMaterial = CreateOrUpdateMaterial(MaterialRoot + "/MenuTrim.mat", new Color(0.94f, 0.95f, 0.96f));
+        var woodMaterial = CreateOrUpdateMaterial(MaterialRoot + "/MenuWood.mat", new Color(0.58f, 0.39f, 0.24f));
+        var foliageMaterial = CreateOrUpdateMaterial(MaterialRoot + "/MenuFoliage.mat", new Color(0.24f, 0.56f, 0.33f));
+        var trunkMaterial = CreateOrUpdateMaterial(MaterialRoot + "/MenuTrunk.mat", new Color(0.40f, 0.28f, 0.18f));
+        var waterMaterial = CreateOrUpdateMaterial(MaterialRoot + "/MenuWater.mat", new Color(0.22f, 0.61f, 0.78f));
+
+        CreatePrimitiveGround(new Vector3(0f, 0f, 0f), Vector3.one * 6f, new Color(0.36f, 0.56f, 0.32f), assets.GroundMaterial).transform.SetParent(root);
+        CreateRoad(root, assets.ArtSet, "MenuRoad", new Vector3(12f, 0.02f, 6f), new Vector3(18f, 0.05f, 2f), assets.RoadMaterial);
+        CreateSidewalk(root, assets.ArtSet, "MenuWalkA", new Vector3(12f, 0.03f, 9.1f), new Vector3(18f, 0.04f, 0.9f), sidewalkMaterial);
+        CreateSidewalk(root, assets.ArtSet, "MenuWalkB", new Vector3(12f, 0.03f, 2.9f), new Vector3(18f, 0.04f, 0.9f), sidewalkMaterial);
+        CreateBuilding(root, assets.ArtSet, "MenuOffice", new Vector3(18f, 6f, 28f), new Vector3(16f, 12f, 14f), assets.BuildingMaterial);
+        CreateBuilding(root, assets.ArtSet, "MenuCafe", new Vector3(-2f, 4f, 24f), new Vector3(12f, 8f, 10f), assets.BuildingMaterial);
+        CreateBuilding(root, assets.ArtSet, "MenuApartments", new Vector3(-18f, 6f, 30f), new Vector3(16f, 12f, 14f), assets.BuildingMaterial);
+        CreateFountain(root, new Vector3(6f, 0.06f, 18f), trimMaterial, waterMaterial, assets.ArtSet);
+        CreateBench(root, new Vector3(2f, 0.04f, 14f), woodMaterial, trimMaterial, 40f, assets.ArtSet);
+        CreateBench(root, new Vector3(11f, 0.04f, 13f), woodMaterial, trimMaterial, -30f, assets.ArtSet);
+        CreateTree(root, new Vector3(-6f, 0.04f, 13f), trunkMaterial, foliageMaterial, 1.2f, assets.ArtSet);
+        CreateTree(root, new Vector3(18f, 0.04f, 14f), trunkMaterial, foliageMaterial, 1.1f, assets.ArtSet);
+        CreateLamp(root, new Vector3(0f, 0.04f, 8f), trimMaterial, waterMaterial, assets.ArtSet);
+        CreateLamp(root, new Vector3(18f, 0.04f, 8f), trimMaterial, waterMaterial, assets.ArtSet);
+        CreateShowcaseCharacter("ShowcaseCitizen", assets.CitizenPrefab, new Vector3(6f, 0.05f, 16f), 160f);
+        CreateShowcaseCharacter("ShowcaseHunter", assets.HunterPrefab, new Vector3(14f, 0.05f, 15.5f), -130f);
+        CreateShowcaseCharacter("ShowcasePlayer", assets.PlayerPrefab, new Vector3(9f, 0.05f, 12f), -20f);
+    }
+
+    private static void CreateShowcaseCharacter(string name, GameObject prefab, Vector3 position, float yRotation)
+    {
+        if (prefab == null)
+        {
+            return;
+        }
+
+        var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+        if (instance == null)
+        {
+            instance = Object.Instantiate(prefab);
+        }
+
+        instance.name = name;
+        instance.transform.position = position;
+        instance.transform.rotation = Quaternion.Euler(0f, yRotation, 0f);
+
+        var behaviours = instance.GetComponentsInChildren<Behaviour>(true);
+        for (var i = 0; i < behaviours.Length; i++)
+        {
+            if (behaviours[i] is Animator)
+            {
+                continue;
+            }
+
+            behaviours[i].enabled = false;
+        }
+
+        var colliders = instance.GetComponentsInChildren<Collider>(true);
+        for (var i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+    }
+
+    private static void CreateParkAccent(Transform parent, Vector3 localPosition, Vector3 targetSize, BlendInArtSet artSet, params string[] tokens)
+    {
+        var prefab = FindPrefabByTokens(artSet != null ? artSet.parkVisualPrefabs : null, tokens);
+        if (prefab == null)
+        {
+            return;
+        }
+
+        TryCreatePropVisual("ParkAccent", parent, prefab, localPosition, Quaternion.identity, targetSize, 0.92f);
+    }
+
+    private static Button CreateMenuButton(Transform parent, string name, string label, Color color)
+    {
+        var button = CreateButtonElement(name, parent, color);
+        var labelText = CreateTextElement("Label", button.transform, label, 22, TextAlignmentOptions.Center);
+        Stretch((RectTransform)labelText.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        return button;
     }
 
     private static GameObject PickPrefabForName(string seed, GameObject[] prefabs)

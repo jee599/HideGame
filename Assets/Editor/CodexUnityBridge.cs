@@ -78,6 +78,14 @@ public static class CodexUnityBridge
         Debug.Log("CodexUnityBridge: rebuild + auto bind complete.");
     }
 
+    [MenuItem("Blend In/Codex/Rebuild + Validate")]
+    public static void RebuildAndValidate()
+    {
+        RebuildAndAutoBind();
+        InvokeEditorStaticMethod("PrototypeValidator", "ValidatePrototypeMenu");
+        Debug.Log("CodexUnityBridge: rebuild + validate complete.");
+    }
+
     [MenuItem("Blend In/Codex/Build Current Target")]
     public static void BuildCurrentTarget()
     {
@@ -617,7 +625,17 @@ public static class CodexUnityBridge
             "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-park-large.fbx",
             "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-large.fbx",
             "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-small.fbx",
-            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-shrub.fbx");
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-shrub.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/tree_oak.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/tree_detailed.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/tree_small.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/plant_bushLarge.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/plant_bushDetailed.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/flower_yellowA.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/flower_redA.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/grass_large.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/rock_smallA.fbx",
+            "Assets/Imported/Kenney/NatureKit/Models/FBX format/rock_smallFlatA.fbx");
     }
 
     private static GameObject[] LoadCuratedStreetProps()
@@ -882,6 +900,25 @@ public static class CodexUnityBridge
         }
 
         return options;
+    }
+
+    private static void InvokeEditorStaticMethod(string typeName, string methodName)
+    {
+        var type = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .FirstOrDefault(candidate => string.Equals(candidate.Name, typeName, StringComparison.Ordinal));
+        if (type == null)
+        {
+            throw new InvalidOperationException($"Editor type not found: {typeName}");
+        }
+
+        var method = type.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        if (method == null)
+        {
+            throw new InvalidOperationException($"Static method not found: {typeName}.{methodName}");
+        }
+
+        method.Invoke(null, null);
     }
 }
 #endif

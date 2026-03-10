@@ -8,6 +8,7 @@ public class PlayerDisguise : MonoBehaviour
     public int remainingDisguises;
     public float disguiseTime = 3f;
     public bool isDisguising;
+    public int UsedDisguises => Mathf.Max(0, maxDisguises - remainingDisguises);
 
     public event Action<float> ProgressChanged;
     public event Action<int> ChargesChanged;

@@ -10,6 +10,7 @@ public class MissionManager : MonoBehaviour
     public bool assignOnStart = true;
 
     public MissionData ActiveMission { get; private set; }
+    public int CompletedMissionCount { get; private set; }
     public float Progress01 => ActiveMission == null || ActiveMission.requiredWaitSeconds <= 0f
         ? 0f
         : Mathf.Clamp01(_progressSeconds / ActiveMission.requiredWaitSeconds);
@@ -130,6 +131,7 @@ public class MissionManager : MonoBehaviour
     {
         ActiveMission = null;
         _progressSeconds = 0f;
+        CompletedMissionCount = 0;
         _playerInsideTargetZone = false;
         _missionDelayTimer = 0f;
 
@@ -186,6 +188,7 @@ public class MissionManager : MonoBehaviour
 
         ScoreManager.Instance?.AddScore(ActiveMission.scoreReward);
         var completedMission = ActiveMission;
+        CompletedMissionCount++;
         MissionCompleted?.Invoke(completedMission);
 
         ActiveMission = null;

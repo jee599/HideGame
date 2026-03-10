@@ -102,7 +102,6 @@ GameObject:
   - component: {fileID: 7418633507371982729}
   - component: {fileID: 6023996272610653057}
   - component: {fileID: 4733949855754934823}
-  - component: {fileID: 8001516167758847700}
   m_Layer: 0
   m_Name: Hunter
   m_TagString: Untagged
@@ -162,7 +161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7957b952ef93a5142837989f47e83b46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DetectionSystem
-  viewOrigin: {fileID: 0}
+  viewOrigin: {fileID: 6416410364795533296}
   obstructionMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -181,22 +180,6 @@ MonoBehaviour:
   currentState: 0
   config: {fileID: 11400000, guid: 642d506f25c6987479f06e7c86ce4658, type: 2}
   patrolRoute: []
---- !u!114 &8001516167758847700
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2923079314331911269}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7957b952ef93a5142837989f47e83b46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DetectionSystem
-  viewOrigin: {fileID: 6416410364795533296}
-  obstructionMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &6403249800089897242
 GameObject:
   m_ObjectHideFlags: 0

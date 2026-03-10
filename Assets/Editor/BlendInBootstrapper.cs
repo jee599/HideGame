@@ -518,7 +518,11 @@ public static partial class BlendInBootstrapper
 
         var hunter = root.AddComponent<HunterAI>();
         hunter.config = assets.HunterConfig;
-        var detection = root.AddComponent<DetectionSystem>();
+        var detection = root.GetComponent<DetectionSystem>();
+        if (detection == null)
+        {
+            detection = root.AddComponent<DetectionSystem>();
+        }
 
         var viewOrigin = new GameObject("ViewOrigin").transform;
         viewOrigin.SetParent(root.transform);

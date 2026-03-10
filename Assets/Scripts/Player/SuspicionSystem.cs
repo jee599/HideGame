@@ -15,6 +15,7 @@ public class SuspicionSystem : MonoBehaviour
     public float decayRate = 2f;
 
     public SuspicionBand CurrentBand { get; private set; }
+    public float PeakSuspicion { get; private set; }
 
     public event Action<float> SuspicionChanged;
     public event Action<SuspicionBand> BandChanged;
@@ -104,6 +105,7 @@ public class SuspicionSystem : MonoBehaviour
 
     public void ResetSuspicion()
     {
+        PeakSuspicion = 0f;
         SetSuspicion(0f);
     }
 
@@ -116,6 +118,7 @@ public class SuspicionSystem : MonoBehaviour
         }
 
         suspicion = clamped;
+        PeakSuspicion = Mathf.Max(PeakSuspicion, suspicion);
         SuspicionChanged?.Invoke(suspicion);
 
         var band = EvaluateBand(suspicion);
