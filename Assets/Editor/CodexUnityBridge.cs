@@ -37,8 +37,9 @@ public static class CodexUnityBridge
         AutoConfigureMixamoImports(changes);
         AutoConfigureCharacterMeshImports(changes);
         AutoAssignVisualPrefabs(artSet, changes);
+        AutoAssignEnvironmentPrefabs(artSet, changes);
         AutoAssignMaterials(artSet, changes);
-        ResetEnvironmentBindings(artSet, changes);
+        AutoUpgradeImportedMaterials(changes);
 
         EditorUtility.SetDirty(artSet);
         AssetDatabase.SaveAssets();
@@ -213,19 +214,19 @@ public static class CodexUnityBridge
 
         artSet.sidewalkVisualPrefabs = AssignPrefabArray(
             artSet.sidewalkVisualPrefabs,
-            LoadPrefabsFromFolders("Assets/ithappy/Cartoon_City_Free/Prefabs/Sidewalks"),
+            LoadCuratedSidewalkPrefabs(),
             "sidewalkVisualPrefabs",
             changes);
 
         artSet.parkVisualPrefabs = AssignPrefabArray(
             artSet.parkVisualPrefabs,
-            LoadPrefabsFromFolders("Assets/ithappy/Cartoon_City_Free/Prefabs/Vegetation"),
+            LoadCuratedParkPrefabs(),
             "parkVisualPrefabs",
             changes);
 
         artSet.streetPropPrefabs = AssignPrefabArray(
             artSet.streetPropPrefabs,
-            LoadPrefabsFromFolders("Assets/ithappy/Cartoon_City_Free/Prefabs/Props"),
+            LoadCuratedStreetProps(),
             "streetPropPrefabs",
             changes);
 
@@ -242,6 +243,63 @@ public static class CodexUnityBridge
                 "Assets/ithappy/Cartoon_City_Free/Prefabs/Props/Bus_Stop_02.prefab"),
             "busStopVisualPrefab",
             changes);
+    }
+
+    private static void AutoUpgradeImportedMaterials(List<string> changes)
+    {
+        var materialGuids = AssetDatabase.FindAssets("t:Material", new[]
+        {
+            "Assets/Imported/Kenney",
+            "Assets/ithappy"
+        });
+
+        if (materialGuids == null || materialGuids.Length == 0)
+        {
+            return;
+        }
+
+        var targetShader = Shader.Find("Universal Render Pipeline/Lit");
+        if (targetShader == null)
+        {
+            return;
+        }
+
+        var changedCount = 0;
+        for (var i = 0; i < materialGuids.Length; i++)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(materialGuids[i]);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null || material.shader == targetShader)
+            {
+                continue;
+            }
+
+            var mainTexture = material.mainTexture;
+            var baseColor = material.HasProperty("_BaseColor")
+                ? material.GetColor("_BaseColor")
+                : material.HasProperty("_Color")
+                    ? material.color
+                    : Color.white;
+
+            material.shader = targetShader;
+            if (mainTexture != null && material.HasProperty("_BaseMap"))
+            {
+                material.SetTexture("_BaseMap", mainTexture);
+            }
+
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", baseColor);
+            }
+
+            EditorUtility.SetDirty(material);
+            changedCount++;
+        }
+
+        if (changedCount > 0)
+        {
+            changes.Add($"imported materials upgraded to URP/Lit ({changedCount})");
+        }
     }
 
     private static void ResetEnvironmentBindings(BlendInArtSet artSet, List<string> changes)
@@ -507,22 +565,71 @@ public static class CodexUnityBridge
     private static GameObject[] LoadCuratedBuildingPrefabs()
     {
         return LoadAssetsFromPaths<GameObject>(
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Buildings/Eco_Building_Terrace.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Buildings/Eco_Building_Terrace_NightLight.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Buildings/Eco_Building_Slope.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Buildings/Regular_Building_TwistedTower_Large.prefab");
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-a.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-b.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-c.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-d.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-e.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-f.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-g.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-h.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-i.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-j.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-k.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-l.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-m.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-n.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-o.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-p.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-q.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-r.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-s.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-t.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/building-type-u.fbx");
     }
 
     private static GameObject[] LoadCuratedRoadPrefabs()
     {
         return LoadAssetsFromPaths<GameObject>(
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_001.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_003.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_009.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_013.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_019.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_020.prefab",
-            "Assets/ithappy/Cartoon_City_Free/Prefabs/Roads/road_022.prefab");
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/road-asphalt-straight.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/road-asphalt-side.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/road-asphalt-center.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/road-asphalt-pavement.fbx");
+    }
+
+    private static GameObject[] LoadCuratedSidewalkPrefabs()
+    {
+        return LoadAssetsFromPaths<GameObject>(
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/road-asphalt-pavement.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/road-asphalt-side.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/path-long.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/path-short.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/path-stones-long.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/path-stones-short.fbx");
+    }
+
+    private static GameObject[] LoadCuratedParkPrefabs()
+    {
+        return LoadAssetsFromPaths<GameObject>(
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/tree-large.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/tree-small.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/planter.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-park-large.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-large.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-small.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/tree-shrub.fbx");
+    }
+
+    private static GameObject[] LoadCuratedStreetProps()
+    {
+        return LoadAssetsFromPaths<GameObject>(
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/detail-bench.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/detail-light-single.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/detail-light-double.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/detail-dumpster-closed.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/truck-grey.fbx",
+            "Assets/Imported/Kenney/RetroUrbanKit/Models/FBX format/truck-green.fbx",
+            "Assets/Imported/Kenney/CityKitSuburban/Models/FBX format/planter.fbx");
     }
 
     private static GameObject LoadFirstPrefab(params string[] preferredPaths)

@@ -60,9 +60,19 @@ public class SuspicionSystem : MonoBehaviour
                 AddContinuousPenalty(20f);
             }
 
+            if (string.IsNullOrEmpty(_player.CurrentZoneTag) && !_player.IsInCrowd)
+            {
+                AddContinuousPenalty(4f);
+            }
+
             if (_player.IsActingNatural)
             {
                 AddInstant(-decayRate * Time.deltaTime);
+            }
+
+            if (_player.IsInCrowd && !_player.IsRunning && !_player.IsMovingAgainstCrowd)
+            {
+                AddInstant(-(decayRate * 0.75f) * Time.deltaTime);
             }
         }
     }

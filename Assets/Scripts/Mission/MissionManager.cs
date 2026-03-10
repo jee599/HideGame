@@ -170,6 +170,8 @@ public class MissionManager : MonoBehaviour
 
         return ActiveMission.missionType switch
         {
+            MissionType.CoffeeOrder => !_player.IsMoving,
+            MissionType.BusWait => !_player.IsMoving,
             MissionType.BenchSit => !_player.IsMoving,
             _ => true
         };

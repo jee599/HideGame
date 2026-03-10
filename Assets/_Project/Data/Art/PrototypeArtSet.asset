@@ -16,13 +16,58 @@ MonoBehaviour:
   playerVisualPrefab: {fileID: 7312575046814370627, guid: 5736e576bae68ca4393c5441179cace9, type: 3}
   hunterVisualPrefab: {fileID: 7312575046814370627, guid: 5736e576bae68ca4393c5441179cace9, type: 3}
   tintImportedCharacterRenderers: 0
-  buildingVisualPrefabs: []
-  roadVisualPrefabs: []
-  sidewalkVisualPrefabs: []
-  parkVisualPrefabs: []
-  streetPropPrefabs: []
-  plazaVisualPrefab: {fileID: 0}
-  busStopVisualPrefab: {fileID: 0}
+  buildingVisualPrefabs:
+  - {fileID: 919132149155446097, guid: 634aae286898f494bb574b9cd7b2e968, type: 3}
+  - {fileID: 919132149155446097, guid: c77761c7763ab034086980fbf073e80e, type: 3}
+  - {fileID: 919132149155446097, guid: 165cda5e69fe8664f950c2ece5d3e165, type: 3}
+  - {fileID: 919132149155446097, guid: 0e3032c2a9354ce4aa5796bf6b003216, type: 3}
+  - {fileID: 919132149155446097, guid: 221b16c3a1c80334a9f214fc804def31, type: 3}
+  - {fileID: 919132149155446097, guid: 25733332670718a48a8a7a8b0b6c6367, type: 3}
+  - {fileID: 919132149155446097, guid: 2865a7bb2e28932448b5d79e7693d8b2, type: 3}
+  - {fileID: 919132149155446097, guid: fad94ba83ce5e154a97881e5873edd87, type: 3}
+  - {fileID: 919132149155446097, guid: 0c0707e98ac4a6f42b1fc6b92176a76b, type: 3}
+  - {fileID: 919132149155446097, guid: 583c54a21cd44ad4d93eafe5cfc70bb1, type: 3}
+  - {fileID: 919132149155446097, guid: c39b916ccec4f234a8546d7ab1144612, type: 3}
+  - {fileID: 919132149155446097, guid: 4e69b1143b1a35542bd74cbeba62de15, type: 3}
+  - {fileID: 919132149155446097, guid: daa96f0934041674ea4a37876172d708, type: 3}
+  - {fileID: 919132149155446097, guid: 2ed1c3d410c283f478b59f6a12d1ce51, type: 3}
+  - {fileID: 919132149155446097, guid: dc41af24b639b0a4da0d23d87f507fc8, type: 3}
+  - {fileID: 919132149155446097, guid: 3ebe29abba69019408e00bc02512d4f5, type: 3}
+  - {fileID: 919132149155446097, guid: 45f29959aa01be44eb1f4c372d3b1dd5, type: 3}
+  - {fileID: 919132149155446097, guid: bd7a5c3b07e6d8548a95e89eb933f2cd, type: 3}
+  - {fileID: 919132149155446097, guid: 4cf23bed784fb0544a6a2f796d154e46, type: 3}
+  - {fileID: 919132149155446097, guid: 2638fda1a2a3aac47b727836a6a9d4e3, type: 3}
+  - {fileID: 919132149155446097, guid: 40ade84269a742a49bac223c28510474, type: 3}
+  roadVisualPrefabs:
+  - {fileID: 919132149155446097, guid: 3c316026f2bd21249ac5312c9f609ae3, type: 3}
+  - {fileID: 919132149155446097, guid: 15c9a60b2765fd54197c0c6e742db845, type: 3}
+  - {fileID: 919132149155446097, guid: b11a9249ef7d5244ab0e743d309b80ac, type: 3}
+  - {fileID: 919132149155446097, guid: 6d44b0bac78d2074596c14475c1c3504, type: 3}
+  sidewalkVisualPrefabs:
+  - {fileID: 919132149155446097, guid: 6d44b0bac78d2074596c14475c1c3504, type: 3}
+  - {fileID: 919132149155446097, guid: 15c9a60b2765fd54197c0c6e742db845, type: 3}
+  - {fileID: 919132149155446097, guid: 379a6c100fa7e594197b6d2bed5eaebe, type: 3}
+  - {fileID: 919132149155446097, guid: 3a2dbcbbfdb44544f9a4b9f0d395adc6, type: 3}
+  - {fileID: 919132149155446097, guid: 65ef8320f3d33e84fa0061f6ab4dd6a1, type: 3}
+  - {fileID: 919132149155446097, guid: 647736eaa66209642a7a3a8a9103af14, type: 3}
+  parkVisualPrefabs:
+  - {fileID: 919132149155446097, guid: 1d65fc7b2f543d2498cb92ffc3e5e8ae, type: 3}
+  - {fileID: 919132149155446097, guid: 519d49e7bb27dd84885c6c8f1c1a6043, type: 3}
+  - {fileID: 919132149155446097, guid: 18514fc082df4ab4abd65cce1f21fbd5, type: 3}
+  - {fileID: 919132149155446097, guid: 84ced86a51176c0459216fabf03b2f25, type: 3}
+  - {fileID: 919132149155446097, guid: 256eed53a7dc2ec45a9335464a3e451c, type: 3}
+  - {fileID: 919132149155446097, guid: 5df767b722cf0ec4b9d83d37ced46e43, type: 3}
+  - {fileID: 919132149155446097, guid: 6093565148eb0f74d874579562f1eb79, type: 3}
+  streetPropPrefabs:
+  - {fileID: 919132149155446097, guid: fc8dd20c69c8b1b4a932218914719e74, type: 3}
+  - {fileID: 919132149155446097, guid: 711c20474d659944395b5aeb290a58bd, type: 3}
+  - {fileID: 919132149155446097, guid: 41c3be53db1e26b4cbf1c3f5dc5b4589, type: 3}
+  - {fileID: 919132149155446097, guid: 007f604db8745df41a08df80bbe96702, type: 3}
+  - {fileID: 919132149155446097, guid: 675a15f7f40229c448021e544b63528c, type: 3}
+  - {fileID: 919132149155446097, guid: 103801fc0fe6e584c9230c19aa1ab72d, type: 3}
+  - {fileID: 919132149155446097, guid: 18514fc082df4ab4abd65cce1f21fbd5, type: 3}
+  plazaVisualPrefab: {fileID: 3226462819479356637, guid: d2d360664b1d55c4584ee3bc8ec31be8, type: 3}
+  busStopVisualPrefab: {fileID: 3646922649956121724, guid: 214952dcbf34cc642ae2e0301f4d2baf, type: 3}
   citizenMaterial: {fileID: 2100000, guid: dbc0ac3b2e21dbd4aaface70d26b6083, type: 2}
   playerMaterial: {fileID: 2100000, guid: dbc0ac3b2e21dbd4aaface70d26b6083, type: 2}
   hunterMaterial: {fileID: 2100000, guid: dbc0ac3b2e21dbd4aaface70d26b6083, type: 2}

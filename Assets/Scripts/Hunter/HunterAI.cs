@@ -116,6 +116,7 @@ public class HunterAI : MonoBehaviour
             Player.SetHunterEyeContact(AnyHunterMakingEyeContact());
         }
 
+        ApplyObservationPressure(seesPlayer);
         UpdateAnimator();
         _stateImpl?.Tick(this);
     }
@@ -162,6 +163,11 @@ public class HunterAI : MonoBehaviour
                 hunter.HandlePlayerDisguised(witnessed, outfitId);
             }
         }
+    }
+
+    public static HunterAI GetPrimaryHunter()
+    {
+        return ActiveHunters.Count > 0 ? ActiveHunters[0] : null;
     }
 
     public float GetCurrentViewRange()
@@ -354,6 +360,57 @@ public class HunterAI : MonoBehaviour
 
         destination = transform.position;
         return false;
+    }
+
+    private void ApplyObservationPressure(bool seesPlayer)
+    {
+        if (!seesPlayer || Suspicion == null || Player == null)
+        {
+            return;
+        }
+
+        var pressure = currentState switch
+        {
+            HunterState.Investigate => 4.5f,
+            HunterState.Chase => 8f,
+            HunterState.Lockdown => 12f,
+            _ => 1.5f
+        };
+
+        if (!Player.IsInCrowd)
+        {
+            pressure += 4f;
+        }
+
+        if (!Player.IsSheltered)
+        {
+            pressure += 2f;
+        }
+
+        if (string.IsNullOrEmpty(Player.CurrentZoneTag))
+        {
+            pressure += 3f;
+        }
+
+        if (DistanceToPlayer() <= 6f)
+        {
+            pressure += 4f;
+        }
+
+        if (Player.IsLoitering && !Player.IsInCrowd)
+        {
+            pressure += 3f;
+        }
+
+        if (Player.IsInCrowd && Player.IsActingNatural)
+        {
+            pressure = Mathf.Max(0f, pressure - 5f);
+        }
+
+        if (pressure > 0f)
+        {
+            Suspicion.AddContinuousPenalty(pressure);
+        }
     }
 
     private void UpdateAnimator()

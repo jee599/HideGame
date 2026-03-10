@@ -136,13 +136,11 @@ public static partial class BlendInBootstrapper
         return CreateOrUpdateAsset<BlendInArtSet>(ArtDataRoot + "/PrototypeArtSet.asset", asset =>
         {
             asset.tintImportedCharacterRenderers = false;
-            asset.buildingVisualPrefabs = Array.Empty<GameObject>();
-            asset.roadVisualPrefabs = Array.Empty<GameObject>();
-            asset.sidewalkVisualPrefabs = Array.Empty<GameObject>();
-            asset.parkVisualPrefabs = Array.Empty<GameObject>();
-            asset.streetPropPrefabs = Array.Empty<GameObject>();
-            asset.plazaVisualPrefab = null;
-            asset.busStopVisualPrefab = null;
+            asset.buildingVisualPrefabs ??= Array.Empty<GameObject>();
+            asset.roadVisualPrefabs ??= Array.Empty<GameObject>();
+            asset.sidewalkVisualPrefabs ??= Array.Empty<GameObject>();
+            asset.parkVisualPrefabs ??= Array.Empty<GameObject>();
+            asset.streetPropPrefabs ??= Array.Empty<GameObject>();
         });
     }
 
