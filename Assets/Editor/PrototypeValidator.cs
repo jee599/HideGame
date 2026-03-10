@@ -135,6 +135,7 @@ public static class PrototypeValidator
         ValidateObject<RelationshipManager>("RelationshipManager", issues);
         ValidateObject<CitizenSpawner>("CitizenSpawner", issues);
         ValidateObject<GameAudioDirector>("GameAudioDirector", issues);
+        ValidateObject<PrototypeVfxDirector>("PrototypeVfxDirector", issues);
 
         var player = Object.FindFirstObjectByType<PlayerController>();
         if (player == null)
@@ -246,6 +247,11 @@ public static class PrototypeValidator
             issues.Add("MainMenuController missing");
         }
 
+        if (Object.FindFirstObjectByType<GameAudioDirector>() == null)
+        {
+            issues.Add("MainMenu GameAudioDirector missing");
+        }
+
         if (Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length < 2)
         {
             issues.Add("MainMenu buttons missing");
@@ -272,6 +278,11 @@ public static class PrototypeValidator
         if (controller == null)
         {
             issues.Add("ResultSceneController missing");
+        }
+
+        if (Object.FindFirstObjectByType<GameAudioDirector>() == null)
+        {
+            issues.Add("ResultScene GameAudioDirector missing");
         }
 
         if (Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length < 2)

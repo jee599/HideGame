@@ -35,6 +35,8 @@ public static partial class BlendInBootstrapper
         camera.fieldOfView = 56f;
         CreateMenuBackdrop(assets);
         CreateEventSystem();
+        var audioDirector = new GameObject("GameAudioDirector").AddComponent<GameAudioDirector>();
+        ConfigureSharedAudio(audioDirector);
 
         var canvas = CreateCanvas("MainMenuCanvas");
         var panelColor = new Color(0.05f, 0.08f, 0.12f, 0.80f);
@@ -85,6 +87,8 @@ public static partial class BlendInBootstrapper
         camera.fieldOfView = 58f;
         CreateMenuBackdrop(assets);
         CreateEventSystem();
+        var audioDirector = new GameObject("GameAudioDirector").AddComponent<GameAudioDirector>();
+        ConfigureSharedAudio(audioDirector);
 
         var canvas = CreateCanvas("ResultCanvas");
         var overlay = CreateImageElement("Overlay", canvas.transform, new Color(0.04f, 0.06f, 0.10f, 0.78f));
@@ -153,6 +157,8 @@ public static partial class BlendInBootstrapper
         missionManager.transform.SetParent(systemsRoot);
         var audioDirector = new GameObject("GameAudioDirector").AddComponent<GameAudioDirector>();
         audioDirector.transform.SetParent(systemsRoot);
+        var vfxDirector = new GameObject("PrototypeVfxDirector").AddComponent<PrototypeVfxDirector>();
+        vfxDirector.transform.SetParent(systemsRoot);
         var relationshipManager = new GameObject("RelationshipManager").AddComponent<RelationshipManager>();
         relationshipManager.transform.SetParent(systemsRoot);
         var citizenSpawner = new GameObject("CitizenSpawner").AddComponent<CitizenSpawner>();
@@ -163,6 +169,7 @@ public static partial class BlendInBootstrapper
         citizenSpawner.citizenPrefab = assets.CitizenPrefab;
         citizenSpawner.archetypes = assets.Archetypes;
         ConfigureGameplayAudio(audioDirector);
+        ConfigureGameplayVfx(vfxDirector);
 
         var routePoints = CreateHunterRoute(routeRoot);
         var hunterAi = hunter.GetComponent<HunterAI>();
@@ -175,7 +182,7 @@ public static partial class BlendInBootstrapper
         EditorSceneManager.SaveScene(scene, SceneRoot + "/GameScene.unity");
     }
 
-    private static void ConfigureGameplayAudio(GameAudioDirector audioDirector)
+    private static void ConfigureSharedAudio(GameAudioDirector audioDirector)
     {
         if (audioDirector == null)
         {
@@ -185,6 +192,27 @@ public static partial class BlendInBootstrapper
         audioDirector.uiClickClip = LoadAudioClip(
             "Assets/Imported/Kenney/UIAudio/Audio/click4.ogg",
             "Assets/Imported/Kenney/UIAudio/Audio/switch14.ogg");
+        audioDirector.menuMusicClips = LoadAudioClipsFromFolder(
+            "Assets/Imported/Kenney/MusicJingles/Audio/Pizzicato jingles",
+            "Assets/Imported/Kenney/MusicJingles/Audio/8-Bit jingles");
+        audioDirector.gameplayMusicClips = LoadAudioClipsFromFolder(
+            "Assets/Imported/Kenney/MusicJingles/Audio/Steel jingles",
+            "Assets/Imported/Kenney/MusicJingles/Audio/Sax jingles");
+        audioDirector.resultMusicClips = LoadAudioClipsFromFolder(
+            "Assets/Imported/Kenney/MusicJingles/Audio/Sax jingles",
+            "Assets/Imported/Kenney/MusicJingles/Audio/Pizzicato jingles");
+        audioDirector.musicVolume = 0.24f;
+        audioDirector.musicGapRange = new Vector2(0.12f, 0.48f);
+    }
+
+    private static void ConfigureGameplayAudio(GameAudioDirector audioDirector)
+    {
+        if (audioDirector == null)
+        {
+            return;
+        }
+
+        ConfigureSharedAudio(audioDirector);
         audioDirector.missionCompleteClip = LoadAudioClip(
             "Assets/Imported/Kenney/UIAudio/Audio/switch21.ogg",
             "Assets/Imported/Kenney/UIAudio/Audio/switch11.ogg");
@@ -206,6 +234,37 @@ public static partial class BlendInBootstrapper
         audioDirector.footstepGrassClip = LoadAudioClip(
             "Assets/Imported/Kenney/ImpactSounds/Audio/footstep_grass_001.ogg",
             "Assets/Imported/Kenney/ImpactSounds/Audio/footstep_grass_003.ogg");
+        audioDirector.musicVolume = 0.18f;
+        audioDirector.musicGapRange = new Vector2(0.08f, 0.22f);
+    }
+
+    private static void ConfigureGameplayVfx(PrototypeVfxDirector vfxDirector)
+    {
+        if (vfxDirector == null)
+        {
+            return;
+        }
+
+        vfxDirector.disguiseSmokeMaterial = CreateOrUpdateParticleMaterial(
+            MaterialRoot + "/VFX_DisguiseSmoke.mat",
+            "Assets/Imported/Kenney/ParticlePack/PNG (Transparent)/smoke_04.png",
+            new Color(0.82f, 0.92f, 1f, 0.75f),
+            false);
+        vfxDirector.disguiseSparkMaterial = CreateOrUpdateParticleMaterial(
+            MaterialRoot + "/VFX_DisguiseSpark.mat",
+            "Assets/Imported/Kenney/ParticlePack/PNG (Transparent)/magic_03.png",
+            new Color(0.18f, 1f, 0.72f, 1f),
+            true);
+        vfxDirector.missionCompleteMaterial = CreateOrUpdateParticleMaterial(
+            MaterialRoot + "/VFX_MissionComplete.mat",
+            "Assets/Imported/Kenney/ParticlePack/PNG (Transparent)/star_05.png",
+            new Color(1f, 0.84f, 0.22f, 1f),
+            true);
+        vfxDirector.hunterAlertMaterial = CreateOrUpdateParticleMaterial(
+            MaterialRoot + "/VFX_HunterAlert.mat",
+            "Assets/Imported/Kenney/ParticlePack/PNG (Transparent)/spark_05.png",
+            new Color(1f, 0.34f, 0.18f, 1f),
+            true);
     }
 
     private static void CreateGrayboxMap(BlendInBootstrapAssets assets, Transform environmentRoot, Transform markerRoot)
@@ -1398,6 +1457,84 @@ public static partial class BlendInBootstrapper
         }
 
         return null;
+    }
+
+    private static AudioClip[] LoadAudioClipsFromFolder(params string[] folderPaths)
+    {
+        return folderPaths
+            .Where(path => AssetDatabase.IsValidFolder(path))
+            .SelectMany(path => AssetDatabase.FindAssets("t:AudioClip", new[] { path })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .OrderBy(assetPath => assetPath))
+            .Select(AssetDatabase.LoadAssetAtPath<AudioClip>)
+            .Where(clip => clip != null)
+            .Distinct()
+            .ToArray();
+    }
+
+    private static Material CreateOrUpdateParticleMaterial(string materialPath, string texturePath, Color tint, bool additive)
+    {
+        var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Particles/Standard Unlit");
+        if (shader == null)
+        {
+            return null;
+        }
+
+        var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+        if (material == null)
+        {
+            material = new Material(shader);
+            AssetDatabase.CreateAsset(material, materialPath);
+        }
+        else if (material.shader != shader)
+        {
+            material.shader = shader;
+        }
+
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        if (texture != null)
+        {
+            if (material.HasProperty("_BaseMap"))
+            {
+                material.SetTexture("_BaseMap", texture);
+            }
+
+            if (material.HasProperty("_MainTex"))
+            {
+                material.SetTexture("_MainTex", texture);
+            }
+        }
+
+        if (material.HasProperty("_BaseColor"))
+        {
+            material.SetColor("_BaseColor", tint);
+        }
+
+        if (material.HasProperty("_Color"))
+        {
+            material.SetColor("_Color", tint);
+        }
+
+        if (material.HasProperty("_Surface"))
+        {
+            material.SetFloat("_Surface", 1f);
+        }
+
+        if (material.HasProperty("_Blend"))
+        {
+            material.SetFloat("_Blend", additive ? 2f : 0f);
+        }
+
+        if (material.HasProperty("_AlphaClip"))
+        {
+            material.SetFloat("_AlphaClip", 0f);
+        }
+
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.enableInstancing = true;
+        material.renderQueue = 3000;
+        EditorUtility.SetDirty(material);
+        return material;
     }
 
     private static T GetOrCreateVolumeComponent<T>(VolumeProfile profile) where T : VolumeComponent

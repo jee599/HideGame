@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -37,6 +38,8 @@ public class HunterAI : MonoBehaviour
     public Vector3 LastKnownPlayerPosition { get; private set; }
     public float LostSightTime { get; private set; }
     public float CrowdHiddenTime { get; private set; }
+
+    public event Action<HunterAI, HunterState> StateChanged;
 
     private readonly PatrolState _patrolState = new PatrolState();
     private readonly InvestigateState _investigateState = new InvestigateState();
@@ -264,6 +267,7 @@ public class HunterAI : MonoBehaviour
         };
 
         _stateImpl.Enter(this);
+        StateChanged?.Invoke(this, currentState);
     }
 
     public void ApplySpeed(float speed)
@@ -338,7 +342,7 @@ public class HunterAI : MonoBehaviour
         {
             for (var attempt = 0; attempt < patrolRoute.Length; attempt++)
             {
-                var target = patrolRoute[Random.Range(0, patrolRoute.Length)];
+                var target = patrolRoute[UnityEngine.Random.Range(0, patrolRoute.Length)];
                 if (target != null)
                 {
                     destination = target.position;
@@ -350,7 +354,7 @@ public class HunterAI : MonoBehaviour
         for (var attempt = 0; attempt < 8; attempt++)
         {
             var radius = config != null ? Mathf.Max(8f, config.viewRange) : 15f;
-            var candidate = transform.position + new Vector3(Random.Range(-radius, radius), 0f, Random.Range(-radius, radius));
+            var candidate = transform.position + new Vector3(UnityEngine.Random.Range(-radius, radius), 0f, UnityEngine.Random.Range(-radius, radius));
             if (NavMesh.SamplePosition(candidate, out var hit, radius, NavMesh.AllAreas))
             {
                 destination = hit.position;
