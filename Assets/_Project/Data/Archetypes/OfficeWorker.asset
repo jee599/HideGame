@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b992f5309f63a5d4fb40f5c11f847cbb, type: 3}
+  m_Name: OfficeWorker
+  m_EditorClassIdentifier: Assembly-CSharp::ArchetypeData
+  archetypeId: OfficeWorker
+  count: 30
+  spawnZoneTag: Home
+  behaviorPreset: 0
+  scheduleTable: {fileID: 11400000, guid: 04f4f89993bad5f49a3187095f3a71fa, type: 2}
+  personalityRanges:
+    walkSpeed:
+      min: 0.9
+      max: 1.1
+    patience:
+      min: 4
+      max: 10
+    sociability:
+      min: 0.19999999
+      max: 0.5
+    curiosity:
+      min: 0.05
+      max: 0.35
+    routineBreak:
+      min: 0
+      max: 0.15
+    phoneAddiction:
+      min: 0.07000001
+      max: 0.23
+    awareness:
+      min: 0.15
+      max: 0.6

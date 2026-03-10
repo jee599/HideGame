@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1881f72c4dd56ac409c15abc05a61d5f, type: 3}
+  m_Name: ShopkeeperSchedule
+  m_EditorClassIdentifier: Assembly-CSharp::ScheduleTable
+  slots:
+  - gameHour: 8
+    options:
+    - destinationTag: Shop
+      probability: 1
+      transport: 0
+      waitSeconds: 6
+  - gameHour: 10
+    options:
+    - destinationTag: Shop
+      probability: 1
+      transport: 0
+      waitSeconds: 6
+  - gameHour: 12
+    options:
+    - destinationTag: Shop
+      probability: 0.7
+      transport: 0
+      waitSeconds: 6
+    - destinationTag: Restaurant
+      probability: 0.3
+      transport: 0
+      waitSeconds: 3
+  - gameHour: 14
+    options:
+    - destinationTag: Shop
+      probability: 1
+      transport: 0
+      waitSeconds: 6
+  - gameHour: 17
+    options:
+    - destinationTag: Shop
+      probability: 1
+      transport: 0
+      waitSeconds: 6
+  - gameHour: 19
+    options:
+    - destinationTag: Home
+      probability: 1
+      transport: 0
+      waitSeconds: 5
