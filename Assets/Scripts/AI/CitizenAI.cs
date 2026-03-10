@@ -7,9 +7,6 @@ using UnityEngine.AI;
 public class CitizenAI : MonoBehaviour
 {
     private static readonly List<CitizenAI> ActiveCitizens = new List<CitizenAI>();
-    private static readonly int AnimationStateHash = Animator.StringToHash("State");
-    private static readonly int SpeedHash = Animator.StringToHash("Speed");
-
     [SerializeField] private float socialRadius = 4f;
     [SerializeField] private float phoneCooldownSeconds = 12f;
     [SerializeField] private float socialCooldownSeconds = 15f;
@@ -355,7 +352,6 @@ public class CitizenAI : MonoBehaviour
             return;
         }
 
-        Animator.SetFloat(SpeedHash, Agent.velocity.magnitude);
         ApplyAnimatorState();
     }
 
@@ -376,7 +372,13 @@ public class CitizenAI : MonoBehaviour
             }
         }
 
-        Animator.SetInteger(AnimationStateHash, (int)state);
+        CharacterAnimatorDriver.ApplyLocomotion(
+            Animator,
+            transform,
+            Agent != null ? Agent.velocity : Vector3.zero,
+            Agent != null ? Mathf.Max(Agent.speed, 0.01f) : 1f,
+            state,
+            state == CitizenAnimationState.Run);
     }
 
     private bool HasAnimatorController()

@@ -4,9 +4,6 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    private static readonly int AnimationStateHash = Animator.StringToHash("State");
-    private static readonly int SpeedHash = Animator.StringToHash("Speed");
-
     [Header("Movement")]
     public float walkSpeed = 3.5f;
     public float runSpeed = 5.5f;
@@ -355,8 +352,7 @@ public class PlayerController : MonoBehaviour
         var state = !IsMoving
             ? CitizenAnimationState.Idle
             : IsRunning ? CitizenAnimationState.Run : CitizenAnimationState.Walk;
-
-        _animator.SetFloat(SpeedHash, planarSpeed);
-        _animator.SetInteger(AnimationStateHash, (int)state);
+        var worldVelocity = WorldMoveDirection * planarSpeed;
+        CharacterAnimatorDriver.ApplyLocomotion(_animator, transform, worldVelocity, IsRunning ? runSpeed : walkSpeed, state, IsRunning);
     }
 }

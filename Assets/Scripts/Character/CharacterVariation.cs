@@ -137,3 +137,138 @@ public class CharacterVariation : MonoBehaviour
         return variants == null || variants.Length == 0 ? -1 : Random.Range(0, variants.Length);
     }
 }
+
+public static class CharacterAnimatorDriver
+{
+    private static readonly int StateHash = Animator.StringToHash("State");
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private static readonly int HorHash = Animator.StringToHash("Hor");
+    private static readonly int VertHash = Animator.StringToHash("Vert");
+    private static readonly int IsJumpHash = Animator.StringToHash("IsJump");
+
+    private static readonly System.Collections.Generic.Dictionary<int, AnimatorParameterProfile> ParameterProfiles =
+        new System.Collections.Generic.Dictionary<int, AnimatorParameterProfile>();
+
+    private struct AnimatorParameterProfile
+    {
+        public bool HasStateInt;
+        public bool HasStateFloat;
+        public bool HasSpeedFloat;
+        public bool HasHorFloat;
+        public bool HasVertFloat;
+        public bool HasJumpBool;
+    }
+
+    public static void ApplyLocomotion(
+        Animator animator,
+        Transform referenceTransform,
+        Vector3 worldVelocity,
+        float referenceSpeed,
+        CitizenAnimationState requestedState,
+        bool isRunning,
+        bool isAirborne = false)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null)
+        {
+            return;
+        }
+
+        var profile = GetProfile(animator);
+        var speedMagnitude = worldVelocity.magnitude;
+        var normalizedSpeed = referenceSpeed > 0.01f ? Mathf.Clamp01(speedMagnitude / referenceSpeed) : 0f;
+        var localVelocity = referenceTransform != null
+            ? referenceTransform.InverseTransformDirection(worldVelocity)
+            : worldVelocity;
+
+        var horizontal = referenceSpeed > 0.01f
+            ? Mathf.Clamp(localVelocity.x / referenceSpeed, -1f, 1f)
+            : 0f;
+        var forward = referenceSpeed > 0.01f
+            ? Mathf.Clamp(localVelocity.z / referenceSpeed, -1f, 1f)
+            : 0f;
+
+        if (profile.HasSpeedFloat)
+        {
+            animator.SetFloat(SpeedHash, speedMagnitude);
+        }
+
+        if (profile.HasStateInt)
+        {
+            animator.SetInteger(StateHash, (int)requestedState);
+        }
+
+        if (profile.HasStateFloat)
+        {
+            animator.SetFloat(StateHash, isRunning || requestedState == CitizenAnimationState.Run ? 1f : 0f);
+        }
+
+        if (profile.HasHorFloat)
+        {
+            animator.SetFloat(HorHash, horizontal);
+        }
+
+        if (profile.HasVertFloat)
+        {
+            animator.SetFloat(VertHash, forward == 0f && normalizedSpeed > 0f ? normalizedSpeed : forward);
+        }
+
+        if (profile.HasJumpBool)
+        {
+            animator.SetBool(IsJumpHash, isAirborne);
+        }
+    }
+
+    private static AnimatorParameterProfile GetProfile(Animator animator)
+    {
+        var controller = animator.runtimeAnimatorController;
+        if (controller == null)
+        {
+            return default;
+        }
+
+        var key = controller.GetInstanceID();
+        if (ParameterProfiles.TryGetValue(key, out var profile))
+        {
+            return profile;
+        }
+
+        profile = default;
+        var parameters = animator.parameters;
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            var parameter = parameters[i];
+            if (parameter.nameHash == StateHash)
+            {
+                profile.HasStateInt |= parameter.type == AnimatorControllerParameterType.Int;
+                profile.HasStateFloat |= parameter.type == AnimatorControllerParameterType.Float;
+                continue;
+            }
+
+            if (parameter.nameHash == SpeedHash)
+            {
+                profile.HasSpeedFloat |= parameter.type == AnimatorControllerParameterType.Float;
+                continue;
+            }
+
+            if (parameter.nameHash == HorHash)
+            {
+                profile.HasHorFloat |= parameter.type == AnimatorControllerParameterType.Float;
+                continue;
+            }
+
+            if (parameter.nameHash == VertHash)
+            {
+                profile.HasVertFloat |= parameter.type == AnimatorControllerParameterType.Float;
+                continue;
+            }
+
+            if (parameter.nameHash == IsJumpHash)
+            {
+                profile.HasJumpBool |= parameter.type == AnimatorControllerParameterType.Bool;
+            }
+        }
+
+        ParameterProfiles[key] = profile;
+        return profile;
+    }
+}

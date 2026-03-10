@@ -71,11 +71,11 @@ public static partial class BlendInBootstrapper
 
         var player = (GameObject)PrefabUtility.InstantiatePrefab(assets.PlayerPrefab);
         player.name = "Player";
-        player.transform.position = new Vector3(-52f, 0.05f, 56f);
+        player.transform.position = new Vector3(-34f, 0.05f, 18f);
 
         var hunter = (GameObject)PrefabUtility.InstantiatePrefab(assets.HunterPrefab);
         hunter.name = "Hunter";
-        hunter.transform.position = new Vector3(0f, 0.05f, 12f);
+        hunter.transform.position = new Vector3(-4f, 0.05f, 12f);
 
         var camera = CreateFollowCamera(player.transform);
         var playerController = player.GetComponent<PlayerController>();
@@ -115,11 +115,27 @@ public static partial class BlendInBootstrapper
 
     private static void CreateGrayboxMap(BlendInBootstrapAssets assets, Transform environmentRoot, Transform markerRoot)
     {
+        var sidewalkMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Sidewalk.mat", new Color(0.78f, 0.77f, 0.72f));
+        var trimMaterial = CreateOrUpdateMaterial(MaterialRoot + "/BuildingTrim.mat", new Color(0.92f, 0.92f, 0.95f));
+        var windowMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Window.mat", new Color(0.18f, 0.31f, 0.42f));
+        var accentWarmMaterial = CreateOrUpdateMaterial(MaterialRoot + "/AccentWarm.mat", new Color(0.93f, 0.56f, 0.24f));
+        var accentCoolMaterial = CreateOrUpdateMaterial(MaterialRoot + "/AccentCool.mat", new Color(0.22f, 0.53f, 0.84f));
+        var woodMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Wood.mat", new Color(0.55f, 0.37f, 0.22f));
+        var foliageMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Foliage.mat", new Color(0.24f, 0.58f, 0.32f));
+        var trunkMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Trunk.mat", new Color(0.39f, 0.27f, 0.18f));
+        var waterMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Water.mat", new Color(0.22f, 0.61f, 0.78f));
+
         CreatePrimitiveGround(Vector3.zero, Vector3.one * 20f, new Color(0.36f, 0.56f, 0.32f), assets.GroundMaterial).transform.SetParent(environmentRoot);
 
         CreateRoad(environmentRoot, assets.ArtSet, "MainRoad", new Vector3(0f, 0.02f, 14f), new Vector3(18f, 0.05f, 2f), assets.RoadMaterial);
         CreateRoad(environmentRoot, assets.ArtSet, "EastRoad", new Vector3(22f, 0.02f, -10f), new Vector3(2f, 0.05f, 18f), assets.RoadMaterial);
         CreateRoad(environmentRoot, assets.ArtSet, "WestRoad", new Vector3(-22f, 0.02f, -4f), new Vector3(2f, 0.05f, 14f), assets.RoadMaterial);
+        CreateSidewalk(environmentRoot, "NorthWalk", new Vector3(0f, 0.03f, 17.2f), new Vector3(18f, 0.04f, 0.9f), sidewalkMaterial);
+        CreateSidewalk(environmentRoot, "SouthWalk", new Vector3(0f, 0.03f, 10.8f), new Vector3(18f, 0.04f, 0.9f), sidewalkMaterial);
+        CreateSidewalk(environmentRoot, "EastWalkA", new Vector3(25.2f, 0.03f, -10f), new Vector3(0.9f, 0.04f, 18f), sidewalkMaterial);
+        CreateSidewalk(environmentRoot, "EastWalkB", new Vector3(18.8f, 0.03f, -10f), new Vector3(0.9f, 0.04f, 18f), sidewalkMaterial);
+        CreateSidewalk(environmentRoot, "WestWalkA", new Vector3(-18.8f, 0.03f, -4f), new Vector3(0.9f, 0.04f, 14f), sidewalkMaterial);
+        CreateSidewalk(environmentRoot, "WestWalkB", new Vector3(-25.2f, 0.03f, -4f), new Vector3(0.9f, 0.04f, 14f), sidewalkMaterial);
 
         CreateBuilding(environmentRoot, assets.ArtSet, "Apartment_A", new Vector3(-60f, 6f, 56f), new Vector3(14f, 12f, 14f), assets.BuildingMaterial);
         CreateBuilding(environmentRoot, assets.ArtSet, "Apartment_B", new Vector3(-42f, 5f, 58f), new Vector3(12f, 10f, 12f), assets.BuildingMaterial);
@@ -130,10 +146,11 @@ public static partial class BlendInBootstrapper
         CreateBuilding(environmentRoot, assets.ArtSet, "Convenience", new Vector3(-40f, 4f, 16f), new Vector3(10f, 8f, 10f), assets.BuildingMaterial);
         CreateBuilding(environmentRoot, assets.ArtSet, "Restaurant", new Vector3(-22f, 4f, 16f), new Vector3(14f, 8f, 12f), assets.BuildingMaterial);
         CreateBuilding(environmentRoot, assets.ArtSet, "Shop", new Vector3(-46f, 4f, 0f), new Vector3(12f, 8f, 10f), assets.BuildingMaterial);
+        DecorateDistrict(environmentRoot, trimMaterial, windowMaterial, accentWarmMaterial, accentCoolMaterial, woodMaterial);
 
-        CreatePlaza(environmentRoot, assets);
-        CreatePark(environmentRoot, assets);
-        CreateStreetProps(environmentRoot, assets.ArtSet);
+        CreatePlaza(environmentRoot, assets, sidewalkMaterial, trimMaterial, accentCoolMaterial, woodMaterial, foliageMaterial, trunkMaterial, waterMaterial);
+        CreatePark(environmentRoot, assets, sidewalkMaterial, woodMaterial, foliageMaterial, trunkMaterial, waterMaterial);
+        CreateStreetProps(environmentRoot, assets.ArtSet, trimMaterial, accentWarmMaterial, woodMaterial, foliageMaterial, trunkMaterial);
 
         CreateDestination(markerRoot, "Home_01", "Home", new Vector3(-60f, 0f, 48f));
         CreateDestination(markerRoot, "Home_02", "Home", new Vector3(-42f, 0f, 48f));
@@ -201,10 +218,12 @@ public static partial class BlendInBootstrapper
         var camera = cameraObject.GetComponent<Camera>();
         camera.backgroundColor = new Color(0.66f, 0.82f, 0.94f);
         camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.fieldOfView = 50f;
+        camera.nearClipPlane = 0.2f;
 
         var follow = cameraObject.GetComponent<CameraFollow>();
         follow.target = target;
-        follow.offset = new Vector3(0f, 16f, -14f);
+        follow.offset = new Vector3(0f, 19f, -8f);
         follow.positionLerp = 5f;
         follow.rotationLerp = 6f;
         return camera;
@@ -217,23 +236,26 @@ public static partial class BlendInBootstrapper
 
         CreateEventSystem();
         var canvas = CreateCanvas("HUD");
+        var panelColor = new Color(0.07f, 0.10f, 0.14f, 0.74f);
 
         var timerRoot = new GameObject("TimerUI", typeof(RectTransform), typeof(TimerUI));
         timerRoot.transform.SetParent(canvas.transform, false);
-        var timerText = CreateTextElement("Label", timerRoot.transform, "Timer 03:00", 28, TextAlignmentOptions.Center);
-        Stretch((RectTransform)timerRoot.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(120f, -40f), new Vector2(220f, 50f));
+        Stretch((RectTransform)timerRoot.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(28f, -24f), new Vector2(190f, 46f));
+        var timerBg = CreateImageElement("Background", timerRoot.transform, panelColor);
+        Stretch((RectTransform)timerBg.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        var timerText = CreateTextElement("Label", timerRoot.transform, "08:00", 26, TextAlignmentOptions.Center);
         Stretch((RectTransform)timerText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
         timerRoot.GetComponent<TimerUI>().timerLabel = timerText;
 
         var missionRoot = new GameObject("MissionUI", typeof(RectTransform), typeof(MissionUI));
         missionRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)missionRoot.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(180f, 140f), new Vector2(320f, 90f));
-        var missionBg = CreateImageElement("Background", missionRoot.transform, new Color(0f, 0f, 0f, 0.35f));
+        Stretch((RectTransform)missionRoot.transform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(28f, -82f), new Vector2(360f, 104f));
+        var missionBg = CreateImageElement("Background", missionRoot.transform, panelColor);
         Stretch((RectTransform)missionBg.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        var missionText = CreateTextElement("Label", missionRoot.transform, "Mission: --", 22, TextAlignmentOptions.TopLeft);
-        Stretch((RectTransform)missionText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(14f, -10f), new Vector2(-28f, -28f));
+        var missionText = CreateTextElement("Label", missionRoot.transform, "Mission: --", 20, TextAlignmentOptions.TopLeft);
+        Stretch((RectTransform)missionText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(16f, -12f), new Vector2(-32f, -34f));
         var missionProgressBg = CreateImageElement("ProgressBg", missionRoot.transform, new Color(1f, 1f, 1f, 0.12f));
-        Stretch((RectTransform)missionProgressBg.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 12f), new Vector2(-24f, 12f));
+        Stretch((RectTransform)missionProgressBg.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 12f), new Vector2(-32f, 12f));
         var missionProgressFill = CreateImageElement("ProgressFill", missionProgressBg.transform, new Color(0.25f, 0.80f, 0.50f, 0.95f));
         missionProgressFill.type = Image.Type.Filled;
         missionProgressFill.fillMethod = Image.FillMethod.Horizontal;
@@ -245,15 +267,15 @@ public static partial class BlendInBootstrapper
 
         var suspicionRoot = new GameObject("SuspicionUI", typeof(RectTransform), typeof(SuspicionMeterUI));
         suspicionRoot.transform.SetParent(canvas.transform, false);
-        Stretch((RectTransform)suspicionRoot.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 112f), new Vector2(360f, 52f));
-        var suspicionBg = CreateImageElement("Background", suspicionRoot.transform, new Color(0f, 0f, 0f, 0.35f));
+        Stretch((RectTransform)suspicionRoot.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 42f), new Vector2(320f, 38f));
+        var suspicionBg = CreateImageElement("Background", suspicionRoot.transform, panelColor);
         Stretch((RectTransform)suspicionBg.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
         var suspicionFill = CreateImageElement("Fill", suspicionBg.transform, new Color(0.90f, 0.80f, 0.10f, 0.95f));
         suspicionFill.type = Image.Type.Filled;
         suspicionFill.fillMethod = Image.FillMethod.Horizontal;
         suspicionFill.fillAmount = 0f;
-        Stretch((RectTransform)suspicionFill.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        var suspicionLabel = CreateTextElement("Value", suspicionRoot.transform, "Suspicion 0", 22, TextAlignmentOptions.Center);
+        Stretch((RectTransform)suspicionFill.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(4f, 4f), new Vector2(-8f, -8f));
+        var suspicionLabel = CreateTextElement("Value", suspicionRoot.transform, "Suspicion 0", 18, TextAlignmentOptions.Center);
         Stretch((RectTransform)suspicionLabel.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
         var suspicionUi = suspicionRoot.GetComponent<SuspicionMeterUI>();
         suspicionUi.suspicionSystem = suspicion;
@@ -261,16 +283,16 @@ public static partial class BlendInBootstrapper
         suspicionUi.valueLabel = suspicionLabel;
         suspicionUi.fillGradient = CreateSuspicionGradient();
 
-        var disguiseButton = CreateButtonElement("DisguiseButton", canvas.transform, new Color(0.12f, 0.22f, 0.32f, 0.85f));
-        Stretch((RectTransform)disguiseButton.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-100f, 170f), new Vector2(150f, 72f));
-        var disguiseLabel = CreateTextElement("Label", disguiseButton.transform, "Disguise", 22, TextAlignmentOptions.Center);
-        Stretch((RectTransform)disguiseLabel.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 14f), new Vector2(-12f, -22f));
+        var disguiseButton = CreateButtonElement("DisguiseButton", canvas.transform, panelColor);
+        Stretch((RectTransform)disguiseButton.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-28f, 28f), new Vector2(168f, 72f));
+        var disguiseLabel = CreateTextElement("Label", disguiseButton.transform, "Disguise", 20, TextAlignmentOptions.Center);
+        Stretch((RectTransform)disguiseLabel.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 10f), new Vector2(-12f, -24f));
         var disguiseProgress = CreateImageElement("Progress", disguiseButton.transform, new Color(0.20f, 0.75f, 0.45f, 0.9f));
         disguiseProgress.type = Image.Type.Filled;
         disguiseProgress.fillMethod = Image.FillMethod.Horizontal;
-        Stretch((RectTransform)disguiseProgress.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 8f), new Vector2(-20f, 10f));
-        var disguiseCharges = CreateTextElement("Charges", disguiseButton.transform, "Disguise x3", 18, TextAlignmentOptions.Center);
-        Stretch((RectTransform)disguiseCharges.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(-12f, -24f));
+        Stretch((RectTransform)disguiseProgress.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(16f, 10f), new Vector2(-32f, 8f));
+        var disguiseCharges = CreateTextElement("Charges", disguiseButton.transform, "x3 ready", 16, TextAlignmentOptions.Center);
+        Stretch((RectTransform)disguiseCharges.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, -16f), new Vector2(-12f, -24f));
         var disguiseUiGo = new GameObject("DisguiseUI", typeof(RectTransform), typeof(DisguiseUI));
         disguiseUiGo.transform.SetParent(canvas.transform, false);
         var disguiseUi = disguiseUiGo.GetComponent<DisguiseUI>();
@@ -279,9 +301,9 @@ public static partial class BlendInBootstrapper
         disguiseUi.progressFill = disguiseProgress;
         disguiseUi.chargesLabel = disguiseCharges;
 
-        var minimapButton = CreateButtonElement("MinimapButton", canvas.transform, new Color(0.05f, 0.08f, 0.10f, 0.75f));
-        Stretch((RectTransform)minimapButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-110f, -72f), new Vector2(190f, 190f));
-        var minimapText = CreateTextElement("Label", minimapButton.transform, "MINIMAP", 20, TextAlignmentOptions.Center);
+        var minimapButton = CreateButtonElement("MinimapButton", canvas.transform, panelColor);
+        Stretch((RectTransform)minimapButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-28f, -24f), new Vector2(132f, 132f));
+        var minimapText = CreateTextElement("Label", minimapButton.transform, "MAP", 18, TextAlignmentOptions.Center);
         Stretch((RectTransform)minimapText.transform, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
         var minimapUiGo = new GameObject("MinimapUI", typeof(RectTransform), typeof(MinimapUI));
         minimapUiGo.transform.SetParent(canvas.transform, false);
@@ -350,7 +372,7 @@ public static partial class BlendInBootstrapper
         Stretch((RectTransform)joystickRoot.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         var background = CreateImageElement("Background", joystickRoot.transform, new Color(0f, 0f, 0f, 0.28f));
         background.raycastTarget = true;
-        Stretch((RectTransform)background.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(140f, 140f), new Vector2(180f, 180f));
+        Stretch((RectTransform)background.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(36f, 36f), new Vector2(180f, 180f));
         var handle = CreateImageElement("Handle", background.transform, new Color(1f, 1f, 1f, 0.75f));
         handle.raycastTarget = false;
         Stretch((RectTransform)handle.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(72f, 72f));
@@ -431,16 +453,7 @@ public static partial class BlendInBootstrapper
                 : CreateOrUpdateMaterial(MaterialRoot + "/Road.mat", new Color(0.22f, 0.23f, 0.25f));
         }
 
-        var visualPrefab = PickRoadPrefabForName(name, artSet);
-        if (visualPrefab != null)
-        {
-            if (renderer != null)
-            {
-                renderer.enabled = false;
-            }
-
-            AttachFittedVisual(road.transform, visualPrefab, new Vector3(scale.x, 0.3f, scale.z), 0.98f);
-        }
+        CreateRoadLines(road.transform, scale);
     }
 
     private static void CreateBuilding(Transform parent, BlendInArtSet artSet, string name, Vector3 position, Vector3 scale, Material material)
@@ -455,20 +468,18 @@ public static partial class BlendInBootstrapper
         {
             renderer.sharedMaterial = material;
         }
-
-        var visualPrefab = PickBuildingPrefabForName(name, artSet);
-        if (visualPrefab != null)
-        {
-            if (renderer != null)
-            {
-                renderer.enabled = false;
-            }
-
-            AttachFittedVisual(building.transform, visualPrefab, GetBuildingVisualTargetSize(name, scale), GetBuildingVisualFill(name));
-        }
     }
 
-    private static void CreatePlaza(Transform parent, BlendInBootstrapAssets assets)
+    private static void CreatePlaza(
+        Transform parent,
+        BlendInBootstrapAssets assets,
+        Material sidewalkMaterial,
+        Material trimMaterial,
+        Material accentMaterial,
+        Material woodMaterial,
+        Material foliageMaterial,
+        Material trunkMaterial,
+        Material waterMaterial)
     {
         var plaza = GameObject.CreatePrimitive(PrimitiveType.Cube);
         plaza.name = "Plaza";
@@ -476,30 +487,33 @@ public static partial class BlendInBootstrapper
         plaza.transform.position = new Vector3(0f, 0.1f, 0f);
         plaza.transform.localScale = new Vector3(28f, 0.2f, 28f);
         var renderer = plaza.GetComponent<Renderer>();
-        var hasPlazaVisuals = assets.ArtSet != null
-            && (assets.ArtSet.plazaVisualPrefab != null
-                || (assets.ArtSet.sidewalkVisualPrefabs != null && assets.ArtSet.sidewalkVisualPrefabs.Length > 0));
         if (renderer != null)
         {
-            renderer.sharedMaterial = assets.GroundMaterial != null ? assets.GroundMaterial : assets.BuildingMaterial;
-            renderer.enabled = !hasPlazaVisuals;
+            renderer.sharedMaterial = sidewalkMaterial != null ? sidewalkMaterial : assets.BuildingMaterial;
         }
 
-        if (assets.ArtSet != null && assets.ArtSet.plazaVisualPrefab != null)
-        {
-            AttachFittedVisual(plaza.transform, assets.ArtSet.plazaVisualPrefab, new Vector3(14f, 4f, 14f), 0.95f);
-        }
-
-        if (assets.ArtSet != null && assets.ArtSet.sidewalkVisualPrefabs != null && assets.ArtSet.sidewalkVisualPrefabs.Length > 0)
-        {
-            PlacePropStrip(plaza.transform, assets.ArtSet.sidewalkVisualPrefabs, new Vector3(-10f, 0.15f, 0f), new Vector3(10f, 0f, 0f), 3, new Vector3(8f, 0.6f, 8f), 0.85f);
-            PlacePropStrip(plaza.transform, assets.ArtSet.sidewalkVisualPrefabs, new Vector3(10f, 0.15f, 0f), new Vector3(-10f, 0f, 0f), 3, new Vector3(8f, 0.6f, 8f), 0.85f);
-            PlacePropStrip(plaza.transform, assets.ArtSet.sidewalkVisualPrefabs, new Vector3(0f, 0.15f, -10f), new Vector3(0f, 0f, 10f), 3, new Vector3(8f, 0.6f, 8f), 0.85f);
-            PlacePropStrip(plaza.transform, assets.ArtSet.sidewalkVisualPrefabs, new Vector3(0f, 0.15f, 10f), new Vector3(0f, 0f, -10f), 3, new Vector3(8f, 0.6f, 8f), 0.85f);
-        }
+        CreateDecorCube("PlazaInlay", plaza.transform, new Vector3(0f, 0.12f, 0f), new Vector3(18f, 0.02f, 18f), trimMaterial);
+        CreateFountain(plaza.transform, new Vector3(0f, 0.15f, 0f), trimMaterial, waterMaterial);
+        CreateBench(plaza.transform, new Vector3(-8f, 0.15f, -5f), woodMaterial, trimMaterial, 90f);
+        CreateBench(plaza.transform, new Vector3(8f, 0.15f, -5f), woodMaterial, trimMaterial, -90f);
+        CreateBench(plaza.transform, new Vector3(-8f, 0.15f, 5f), woodMaterial, trimMaterial, 90f);
+        CreateBench(plaza.transform, new Vector3(8f, 0.15f, 5f), woodMaterial, trimMaterial, -90f);
+        CreateTree(plaza.transform, new Vector3(-11f, 0.15f, -11f), trunkMaterial, foliageMaterial, 1.25f);
+        CreateTree(plaza.transform, new Vector3(11f, 0.15f, -11f), trunkMaterial, foliageMaterial, 1.25f);
+        CreateTree(plaza.transform, new Vector3(-11f, 0.15f, 11f), trunkMaterial, foliageMaterial, 1.25f);
+        CreateTree(plaza.transform, new Vector3(11f, 0.15f, 11f), trunkMaterial, foliageMaterial, 1.25f);
+        CreateLamp(plaza.transform, new Vector3(-13f, 0.15f, 0f), accentMaterial, trimMaterial);
+        CreateLamp(plaza.transform, new Vector3(13f, 0.15f, 0f), accentMaterial, trimMaterial);
     }
 
-    private static void CreatePark(Transform parent, BlendInBootstrapAssets assets)
+    private static void CreatePark(
+        Transform parent,
+        BlendInBootstrapAssets assets,
+        Material sidewalkMaterial,
+        Material woodMaterial,
+        Material foliageMaterial,
+        Material trunkMaterial,
+        Material waterMaterial)
     {
         var park = GameObject.CreatePrimitive(PrimitiveType.Cube);
         park.name = "Park";
@@ -512,11 +526,169 @@ public static partial class BlendInBootstrapper
             renderer.sharedMaterial = assets.GroundMaterial;
         }
 
-        if (assets.ArtSet != null && assets.ArtSet.parkVisualPrefabs != null && assets.ArtSet.parkVisualPrefabs.Length > 0)
+        CreateDecorCube("ParkPath_A", park.transform, new Vector3(0f, 0.08f, 0f), new Vector3(22f, 0.04f, 2.4f), sidewalkMaterial);
+        CreateDecorCube("ParkPath_B", park.transform, new Vector3(6f, 0.08f, 0f), new Vector3(2.4f, 0.04f, 18f), sidewalkMaterial);
+        CreateDecorCube("Pond", park.transform, new Vector3(10f, 0.1f, -6f), new Vector3(8f, 0.03f, 6f), waterMaterial);
+        CreateBench(park.transform, new Vector3(-8f, 0.12f, 0f), woodMaterial, sidewalkMaterial, 180f);
+        CreateBench(park.transform, new Vector3(4f, 0.12f, 6f), woodMaterial, sidewalkMaterial, 90f);
+        CreateBench(park.transform, new Vector3(4f, 0.12f, -8f), woodMaterial, sidewalkMaterial, -90f);
+        CreateTree(park.transform, new Vector3(-12f, 0.12f, -8f), trunkMaterial, foliageMaterial, 1.35f);
+        CreateTree(park.transform, new Vector3(-4f, 0.12f, 8f), trunkMaterial, foliageMaterial, 1.1f);
+        CreateTree(park.transform, new Vector3(8f, 0.12f, -10f), trunkMaterial, foliageMaterial, 1.45f);
+        CreateTree(park.transform, new Vector3(12f, 0.12f, 8f), trunkMaterial, foliageMaterial, 1.2f);
+    }
+
+    private static void CreateSidewalk(Transform parent, string name, Vector3 position, Vector3 scale, Material material)
+    {
+        var sidewalk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        sidewalk.name = name;
+        sidewalk.transform.SetParent(parent);
+        sidewalk.transform.position = position;
+        sidewalk.transform.localScale = scale;
+        var renderer = sidewalk.GetComponent<Renderer>();
+        if (renderer != null)
         {
-            PlacePropStrip(park.transform, assets.ArtSet.parkVisualPrefabs, new Vector3(-10f, 0.1f, -6f), new Vector3(20f, 0f, 0f), 4, new Vector3(4f, 8f, 4f), 0.9f);
-            PlacePropStrip(park.transform, assets.ArtSet.parkVisualPrefabs, new Vector3(-12f, 0.1f, 8f), new Vector3(24f, 0f, -10f), 5, new Vector3(4f, 8f, 4f), 0.9f);
+            renderer.sharedMaterial = material;
         }
+    }
+
+    private static void CreateRoadLines(Transform road, Vector3 roadScale)
+    {
+        var lineMaterial = CreateOrUpdateMaterial(MaterialRoot + "/RoadLine.mat", new Color(0.96f, 0.94f, 0.82f));
+        var isHorizontal = roadScale.x > roadScale.z;
+        var segmentCount = isHorizontal ? Mathf.Max(4, Mathf.RoundToInt(roadScale.x * 0.35f)) : Mathf.Max(4, Mathf.RoundToInt(roadScale.z * 0.35f));
+        for (var i = 0; i < segmentCount; i++)
+        {
+            var t = segmentCount == 1 ? 0.5f : i / (float)(segmentCount - 1);
+            var position = isHorizontal
+                ? new Vector3(Mathf.Lerp(-roadScale.x * 0.42f, roadScale.x * 0.42f, t), roadScale.y * 0.5f + 0.01f, 0f)
+                : new Vector3(0f, roadScale.y * 0.5f + 0.01f, Mathf.Lerp(-roadScale.z * 0.42f, roadScale.z * 0.42f, t));
+            var scale = isHorizontal
+                ? new Vector3(1.4f, 0.02f, 0.12f)
+                : new Vector3(0.12f, 0.02f, 1.4f);
+            CreateDecorCube("Lane_" + i, road, position, scale, lineMaterial);
+        }
+    }
+
+    private static void DecorateDistrict(Transform parent, Material trimMaterial, Material windowMaterial, Material accentWarmMaterial, Material accentCoolMaterial, Material woodMaterial)
+    {
+        for (var i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            if (!child.name.StartsWith("Apartment")
+                && !child.name.StartsWith("School")
+                && !child.name.StartsWith("Office")
+                && !child.name.StartsWith("Cafe")
+                && !child.name.StartsWith("Convenience")
+                && !child.name.StartsWith("Restaurant")
+                && !child.name.StartsWith("Shop"))
+            {
+                continue;
+            }
+
+            DecorateBuildingFacade(child, trimMaterial, windowMaterial, child.name.Contains("Cafe") || child.name.Contains("Restaurant") ? accentWarmMaterial : accentCoolMaterial, woodMaterial);
+        }
+    }
+
+    private static void DecorateBuildingFacade(Transform building, Material trimMaterial, Material windowMaterial, Material accentMaterial, Material woodMaterial)
+    {
+        var scale = building.localScale;
+        CreateDecorCube("RoofCap", building, new Vector3(0f, scale.y * 0.5f + 0.18f, 0f), new Vector3(scale.x * 1.04f, 0.28f, scale.z * 1.04f), trimMaterial);
+        CreateDecorCube("Entrance", building, new Vector3(0f, -scale.y * 0.34f, scale.z * 0.5f + 0.08f), new Vector3(scale.x * 0.22f, scale.y * 0.28f, 0.18f), woodMaterial);
+        CreateDecorCube("Sign", building, new Vector3(0f, -scale.y * 0.08f, scale.z * 0.5f + 0.12f), new Vector3(scale.x * 0.48f, 0.28f, 0.14f), accentMaterial);
+
+        var floorCount = Mathf.Clamp(Mathf.RoundToInt(scale.y / 3f), 2, 5);
+        for (var floor = 0; floor < floorCount; floor++)
+        {
+            var y = -scale.y * 0.32f + 1.4f + floor * (scale.y * 0.18f);
+            CreateDecorCube("WindowFront_" + floor, building, new Vector3(0f, y, scale.z * 0.5f + 0.05f), new Vector3(scale.x * 0.72f, 0.55f, 0.08f), windowMaterial);
+            CreateDecorCube("WindowBack_" + floor, building, new Vector3(0f, y, -scale.z * 0.5f - 0.05f), new Vector3(scale.x * 0.72f, 0.55f, 0.08f), windowMaterial);
+            CreateDecorCube("WindowLeft_" + floor, building, new Vector3(-scale.x * 0.5f - 0.05f, y, 0f), new Vector3(0.08f, 0.55f, scale.z * 0.62f), windowMaterial);
+            CreateDecorCube("WindowRight_" + floor, building, new Vector3(scale.x * 0.5f + 0.05f, y, 0f), new Vector3(0.08f, 0.55f, scale.z * 0.62f), windowMaterial);
+        }
+    }
+
+    private static GameObject CreateDecorCube(string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material)
+    {
+        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = name;
+        cube.transform.SetParent(parent, false);
+        cube.transform.localPosition = localPosition;
+        cube.transform.localRotation = Quaternion.identity;
+        cube.transform.localScale = localScale;
+
+        var collider = cube.GetComponent<Collider>();
+        if (collider != null)
+        {
+            Object.DestroyImmediate(collider);
+        }
+
+        var renderer = cube.GetComponent<Renderer>();
+        if (renderer != null && material != null)
+        {
+            renderer.sharedMaterial = material;
+        }
+
+        return cube;
+    }
+
+    private static void CreateBench(Transform parent, Vector3 localPosition, Material woodMaterial, Material frameMaterial, float yRotation)
+    {
+        var bench = new GameObject("Bench");
+        bench.transform.SetParent(parent, false);
+        bench.transform.localPosition = localPosition;
+        bench.transform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
+
+        CreateDecorCube("Seat", bench.transform, new Vector3(0f, 0.32f, 0f), new Vector3(1.6f, 0.12f, 0.44f), woodMaterial);
+        CreateDecorCube("Back", bench.transform, new Vector3(0f, 0.62f, -0.16f), new Vector3(1.6f, 0.52f, 0.12f), woodMaterial);
+        CreateDecorCube("Leg_A", bench.transform, new Vector3(-0.62f, 0.16f, 0f), new Vector3(0.12f, 0.32f, 0.12f), frameMaterial);
+        CreateDecorCube("Leg_B", bench.transform, new Vector3(0.62f, 0.16f, 0f), new Vector3(0.12f, 0.32f, 0.12f), frameMaterial);
+    }
+
+    private static void CreateTree(Transform parent, Vector3 localPosition, Material trunkMaterial, Material foliageMaterial, float scale)
+    {
+        var tree = new GameObject("Tree");
+        tree.transform.SetParent(parent, false);
+        tree.transform.localPosition = localPosition;
+
+        CreateDecorCube("Trunk", tree.transform, new Vector3(0f, 1.1f * scale, 0f), new Vector3(0.28f * scale, 2.2f * scale, 0.28f * scale), trunkMaterial);
+        CreateDecorCube("Canopy", tree.transform, new Vector3(0f, 2.8f * scale, 0f), new Vector3(1.8f * scale, 1.6f * scale, 1.8f * scale), foliageMaterial);
+    }
+
+    private static void CreateLamp(Transform parent, Vector3 localPosition, Material poleMaterial, Material lightMaterial)
+    {
+        var lamp = new GameObject("Lamp");
+        lamp.transform.SetParent(parent, false);
+        lamp.transform.localPosition = localPosition;
+
+        CreateDecorCube("Pole", lamp.transform, new Vector3(0f, 1.7f, 0f), new Vector3(0.14f, 3.4f, 0.14f), poleMaterial);
+        CreateDecorCube("Head", lamp.transform, new Vector3(0f, 3.45f, 0f), new Vector3(0.48f, 0.22f, 0.48f), lightMaterial);
+    }
+
+    private static void CreateFountain(Transform parent, Vector3 localPosition, Material stoneMaterial, Material waterMaterial)
+    {
+        var fountain = new GameObject("Fountain");
+        fountain.transform.SetParent(parent, false);
+        fountain.transform.localPosition = localPosition;
+
+        CreateDecorCube("Base", fountain.transform, new Vector3(0f, 0.16f, 0f), new Vector3(5.8f, 0.32f, 5.8f), stoneMaterial);
+        CreateDecorCube("Water", fountain.transform, new Vector3(0f, 0.26f, 0f), new Vector3(4.8f, 0.08f, 4.8f), waterMaterial);
+        CreateDecorCube("Column", fountain.transform, new Vector3(0f, 0.82f, 0f), new Vector3(0.6f, 1.2f, 0.6f), stoneMaterial);
+        CreateDecorCube("Top", fountain.transform, new Vector3(0f, 1.62f, 0f), new Vector3(1.6f, 0.18f, 1.6f), stoneMaterial);
+    }
+
+    private static void CreateBusStop(Transform parent, Vector3 localPosition, Material frameMaterial, Material accentMaterial, Material benchMaterial)
+    {
+        var busStop = new GameObject("BusStopVisual");
+        busStop.transform.SetParent(parent, false);
+        busStop.transform.localPosition = localPosition;
+
+        CreateDecorCube("Roof", busStop.transform, new Vector3(0f, 2.2f, 0f), new Vector3(3.4f, 0.14f, 1.6f), accentMaterial);
+        CreateDecorCube("Post_A", busStop.transform, new Vector3(-1.4f, 1f, -0.6f), new Vector3(0.12f, 2f, 0.12f), frameMaterial);
+        CreateDecorCube("Post_B", busStop.transform, new Vector3(1.4f, 1f, -0.6f), new Vector3(0.12f, 2f, 0.12f), frameMaterial);
+        CreateDecorCube("Post_C", busStop.transform, new Vector3(-1.4f, 1f, 0.6f), new Vector3(0.12f, 2f, 0.12f), frameMaterial);
+        CreateDecorCube("Post_D", busStop.transform, new Vector3(1.4f, 1f, 0.6f), new Vector3(0.12f, 2f, 0.12f), frameMaterial);
+        CreateBench(busStop.transform, new Vector3(0f, 0f, 0.12f), benchMaterial, frameMaterial, 180f);
     }
 
     private static void CreateDestination(Transform parent, string name, string zoneTag, Vector3 position, bool shelter = false, bool crowdZone = false, bool createSitPoint = false)
@@ -611,23 +783,22 @@ public static partial class BlendInBootstrapper
         surface.BuildNavMesh();
     }
 
-    private static void CreateStreetProps(Transform parent, BlendInArtSet artSet)
+    private static void CreateStreetProps(
+        Transform parent,
+        BlendInArtSet artSet,
+        Material trimMaterial,
+        Material accentMaterial,
+        Material woodMaterial,
+        Material foliageMaterial,
+        Material trunkMaterial)
     {
-        if (artSet == null)
-        {
-            return;
-        }
-
-        if (artSet.busStopVisualPrefab != null)
-        {
-            PlacePropInstance(parent, artSet.busStopVisualPrefab, new Vector3(72f, 0f, 14f), new Vector3(6f, 5f, 4f), 0.95f);
-        }
-
-        if (artSet.streetPropPrefabs != null && artSet.streetPropPrefabs.Length > 0)
-        {
-            PlacePropStrip(parent, artSet.streetPropPrefabs, new Vector3(-36f, 0f, 6f), new Vector3(24f, 0f, 0f), 4, new Vector3(2f, 4f, 2f), 0.85f);
-            PlacePropStrip(parent, artSet.streetPropPrefabs, new Vector3(10f, 0f, 16f), new Vector3(0f, 0f, -24f), 4, new Vector3(2f, 4f, 2f), 0.85f);
-        }
+        CreateBusStop(parent, new Vector3(72f, 0.02f, 14f), trimMaterial, accentMaterial, woodMaterial);
+        CreateLamp(parent, new Vector3(-36f, 0.02f, 8f), accentMaterial, trimMaterial);
+        CreateLamp(parent, new Vector3(-18f, 0.02f, 8f), accentMaterial, trimMaterial);
+        CreateLamp(parent, new Vector3(10f, 0.02f, 20f), accentMaterial, trimMaterial);
+        CreateLamp(parent, new Vector3(10f, 0.02f, -2f), accentMaterial, trimMaterial);
+        CreateTree(parent, new Vector3(-8f, 0.02f, 8f), trunkMaterial, foliageMaterial, 0.95f);
+        CreateTree(parent, new Vector3(26f, 0.02f, 14f), trunkMaterial, foliageMaterial, 0.95f);
     }
 
     private static GameObject PickPrefabForName(string seed, GameObject[] prefabs)

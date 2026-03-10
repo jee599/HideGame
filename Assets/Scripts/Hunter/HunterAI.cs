@@ -21,8 +21,6 @@ public interface IHunterState
 [RequireComponent(typeof(DetectionSystem))]
 public class HunterAI : MonoBehaviour
 {
-    private static readonly int AnimationStateHash = Animator.StringToHash("State");
-    private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly List<HunterAI> ActiveHunters = new List<HunterAI>();
 
     public HunterState currentState = HunterState.Patrol;
@@ -375,9 +373,13 @@ public class HunterAI : MonoBehaviour
             : currentState == HunterState.Chase || currentState == HunterState.Lockdown
                 ? CitizenAnimationState.Run
                 : CitizenAnimationState.Walk;
-
-        Animator.SetFloat(SpeedHash, Agent.velocity.magnitude);
-        Animator.SetInteger(AnimationStateHash, (int)state);
+        CharacterAnimatorDriver.ApplyLocomotion(
+            Animator,
+            transform,
+            Agent.velocity,
+            Mathf.Max(Agent.speed, 0.01f),
+            state,
+            state == CitizenAnimationState.Run);
     }
 
     private bool IsPrimaryHunter()

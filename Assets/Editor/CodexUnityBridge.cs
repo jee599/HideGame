@@ -37,8 +37,8 @@ public static class CodexUnityBridge
         AutoConfigureMixamoImports(changes);
         AutoConfigureCharacterMeshImports(changes);
         AutoAssignVisualPrefabs(artSet, changes);
-        AutoAssignEnvironmentPrefabs(artSet, changes);
         AutoAssignMaterials(artSet, changes);
+        ResetEnvironmentBindings(artSet, changes);
 
         EditorUtility.SetDirty(artSet);
         AssetDatabase.SaveAssets();
@@ -140,7 +140,7 @@ public static class CodexUnityBridge
 
         if (artSet.citizenVisualPrefab != null || artSet.playerVisualPrefab != null || artSet.hunterVisualPrefab != null)
         {
-            artSet.tintImportedCharacterRenderers = true;
+            artSet.tintImportedCharacterRenderers = false;
         }
     }
 
@@ -242,6 +242,33 @@ public static class CodexUnityBridge
                 "Assets/ithappy/Cartoon_City_Free/Prefabs/Props/Bus_Stop_02.prefab"),
             "busStopVisualPrefab",
             changes);
+    }
+
+    private static void ResetEnvironmentBindings(BlendInArtSet artSet, List<string> changes)
+    {
+        if (artSet == null)
+        {
+            return;
+        }
+
+        if ((artSet.buildingVisualPrefabs != null && artSet.buildingVisualPrefabs.Length > 0)
+            || (artSet.roadVisualPrefabs != null && artSet.roadVisualPrefabs.Length > 0)
+            || (artSet.sidewalkVisualPrefabs != null && artSet.sidewalkVisualPrefabs.Length > 0)
+            || (artSet.parkVisualPrefabs != null && artSet.parkVisualPrefabs.Length > 0)
+            || (artSet.streetPropPrefabs != null && artSet.streetPropPrefabs.Length > 0)
+            || artSet.plazaVisualPrefab != null
+            || artSet.busStopVisualPrefab != null)
+        {
+            changes.Add("environment visuals reset to stable prototype mode");
+        }
+
+        artSet.buildingVisualPrefabs = Array.Empty<GameObject>();
+        artSet.roadVisualPrefabs = Array.Empty<GameObject>();
+        artSet.sidewalkVisualPrefabs = Array.Empty<GameObject>();
+        artSet.parkVisualPrefabs = Array.Empty<GameObject>();
+        artSet.streetPropPrefabs = Array.Empty<GameObject>();
+        artSet.plazaVisualPrefab = null;
+        artSet.busStopVisualPrefab = null;
     }
 
     private static T AssignIfFound<T>(T currentValue, T candidate, string label, List<string> changes) where T : UnityEngine.Object

@@ -112,24 +112,12 @@ public static partial class BlendInBootstrapper
         var assets = new BlendInBootstrapAssets
         {
             ArtSet = artSet,
-            CitizenMaterial = artSet != null && artSet.citizenMaterial != null
-                ? artSet.citizenMaterial
-                : CreateOrUpdateMaterial(MaterialRoot + "/CitizenShared.mat", new Color(0.56f, 0.67f, 0.82f)),
-            PlayerMaterial = artSet != null && artSet.playerMaterial != null
-                ? artSet.playerMaterial
-                : CreateOrUpdateMaterial(MaterialRoot + "/PlayerShared.mat", new Color(0.20f, 0.85f, 0.50f)),
-            HunterMaterial = artSet != null && artSet.hunterMaterial != null
-                ? artSet.hunterMaterial
-                : CreateOrUpdateMaterial(MaterialRoot + "/HunterShared.mat", new Color(0.90f, 0.25f, 0.25f)),
-            GroundMaterial = artSet != null && artSet.groundMaterial != null
-                ? artSet.groundMaterial
-                : CreateOrUpdateMaterial(MaterialRoot + "/Ground.mat", new Color(0.48f, 0.72f, 0.47f)),
-            BuildingMaterial = artSet != null && artSet.buildingMaterial != null
-                ? artSet.buildingMaterial
-                : CreateOrUpdateMaterial(MaterialRoot + "/Building.mat", new Color(0.80f, 0.80f, 0.84f)),
-            RoadMaterial = artSet != null && artSet.roadMaterial != null
-                ? artSet.roadMaterial
-                : CreateOrUpdateMaterial(MaterialRoot + "/Road.mat", new Color(0.22f, 0.23f, 0.25f)),
+            CitizenMaterial = CreateOrUpdateMaterial(MaterialRoot + "/CitizenShared.mat", new Color(0.56f, 0.67f, 0.82f)),
+            PlayerMaterial = CreateOrUpdateMaterial(MaterialRoot + "/PlayerShared.mat", new Color(0.20f, 0.85f, 0.50f)),
+            HunterMaterial = CreateOrUpdateMaterial(MaterialRoot + "/HunterShared.mat", new Color(0.90f, 0.25f, 0.25f)),
+            GroundMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Ground.mat", new Color(0.48f, 0.72f, 0.47f)),
+            BuildingMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Building.mat", new Color(0.80f, 0.80f, 0.84f)),
+            RoadMaterial = CreateOrUpdateMaterial(MaterialRoot + "/Road.mat", new Color(0.22f, 0.23f, 0.25f)),
             CharacterAnimatorController = CreatePrototypeCharacterAnimatorController(),
             CharacterAvatar = FindPreferredCharacterAvatar()
         };
@@ -145,7 +133,17 @@ public static partial class BlendInBootstrapper
 
     private static BlendInArtSet CreateArtSet()
     {
-        return CreateOrUpdateAsset<BlendInArtSet>(ArtDataRoot + "/PrototypeArtSet.asset", _ => { });
+        return CreateOrUpdateAsset<BlendInArtSet>(ArtDataRoot + "/PrototypeArtSet.asset", asset =>
+        {
+            asset.tintImportedCharacterRenderers = false;
+            asset.buildingVisualPrefabs = Array.Empty<GameObject>();
+            asset.roadVisualPrefabs = Array.Empty<GameObject>();
+            asset.sidewalkVisualPrefabs = Array.Empty<GameObject>();
+            asset.parkVisualPrefabs = Array.Empty<GameObject>();
+            asset.streetPropPrefabs = Array.Empty<GameObject>();
+            asset.plazaVisualPrefab = null;
+            asset.busStopVisualPrefab = null;
+        });
     }
 
     private static OutfitData[] CreateOutfits()
@@ -542,6 +540,19 @@ public static partial class BlendInBootstrapper
             false,
             out _);
 
+        var marker = CreatePrimitiveVisual(
+            "HunterMarker",
+            PrimitiveType.Sphere,
+            root.transform,
+            assets.HunterMaterial,
+            new Vector3(0f, 2.35f, 0f),
+            new Vector3(0.28f, 0.28f, 0.28f));
+        var markerRenderer = marker.GetComponent<Renderer>();
+        if (markerRenderer != null && assets.HunterMaterial != null)
+        {
+            markerRenderer.sharedMaterial = assets.HunterMaterial;
+        }
+
         var prefab = SaveAsPrefab(root, PrefabRoot + "/Hunter.prefab");
         Object.DestroyImmediate(root);
         return prefab;
@@ -572,7 +583,7 @@ public static partial class BlendInBootstrapper
             instance.transform.SetParent(parent, false);
             instance.transform.localPosition = Vector3.zero;
             instance.transform.localRotation = Quaternion.identity;
-            AssignAnimatorSetup(instance, animatorController, avatar);
+            AssignAnimatorSetup(instance, animatorController, avatar, preserveExistingController: true);
             tintRenderers = tintImportedRenderers
                 ? instance.GetComponentsInChildren<Renderer>(true)
                 : System.Array.Empty<Renderer>();
@@ -580,7 +591,7 @@ public static partial class BlendInBootstrapper
         }
 
         var fallback = CreatePrimitiveVisual(fallbackName, fallbackPrimitive, parent, fallbackMaterial, fallbackLocalPosition, fallbackLocalScale);
-        AssignAnimatorSetup(fallback, animatorController, avatar);
+        AssignAnimatorSetup(fallback, animatorController, avatar, preserveExistingController: false);
         tintRenderers = new[] { fallback.GetComponent<Renderer>() };
         return fallback;
     }
@@ -820,9 +831,9 @@ public static partial class BlendInBootstrapper
         return null;
     }
 
-    private static void AssignAnimatorSetup(GameObject root, RuntimeAnimatorController controller, Avatar avatar)
+    private static void AssignAnimatorSetup(GameObject root, RuntimeAnimatorController controller, Avatar avatar, bool preserveExistingController)
     {
-        if (root == null || controller == null)
+        if (root == null)
         {
             return;
         }
@@ -835,7 +846,11 @@ public static partial class BlendInBootstrapper
 
         for (var i = 0; i < animators.Length; i++)
         {
-            animators[i].runtimeAnimatorController = controller;
+            if (!preserveExistingController || animators[i].runtimeAnimatorController == null)
+            {
+                animators[i].runtimeAnimatorController = controller;
+            }
+
             animators[i].applyRootMotion = false;
             if (avatar != null && (animators[i].avatar == null || !animators[i].avatar.isValid))
             {
